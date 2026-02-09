@@ -13,7 +13,7 @@ const CRY_TYPES: Record<string, { emoji: string, color: string }> = {
   'Unknown': { emoji: '❓', color: '#8E8E93' },
 };
 
-export default function HistoryScreen() {
+function HistoryScreen() {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -75,6 +75,8 @@ export default function HistoryScreen() {
     </View>
   );
 }
+
+export default HistoryScreen;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
