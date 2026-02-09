@@ -1,4 +1,13 @@
 {
     "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "interactive"
+    "java.configuration.updateBuildConfiguration": "interactive",
+    "git.ignoreLimitWarning": true,
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "deno.enable": false,
+    "deno.enablePaths": [
+        "supabase"
+    ],
+    "deno.importMap": "./supabase/functions/import_map.json"
 }

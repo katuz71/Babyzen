@@ -1,61 +1,25 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
 buildscript {
-    ext {
-        buildToolsVersion = findProperty('android.buildToolsVersion') ?: '35.0.0'
-        minSdkVersion = Integer.parseInt(findProperty('android.minSdkVersion') ?: '24')
-        compileSdkVersion = Integer.parseInt(findProperty('android.compileSdkVersion') ?: '35')
-        targetSdkVersion = Integer.parseInt(findProperty('android.targetSdkVersion') ?: '35')
-        kotlinVersion = findProperty('android.kotlinVersion') ?: '2.1.0'
-        kspVersion = '2.1.0-1.0.29' 
-        ndkVersion = "26.1.10909125"
-    }
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
+  repositories {
+    google()
+    mavenCentral()
+  }
+  dependencies {
         classpath 'com.google.gms:google-services:4.4.1'
-        classpath('com.android.tools.build:gradle')
-        classpath('com.facebook.react:react-native-gradle-plugin')
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
-    }
-}
-
-plugins {
-    id "org.jetbrains.kotlin.plugin.compose" version "2.1.0" apply false
-}
-
-apply plugin: "com.facebook.react.rootproject"
-
-subprojects { subproject ->
-    buildscript {
-        repositories {
-            google()
-            mavenCentral()
-        }
-        configurations.classpath {
-            resolutionStrategy {
-                force "org.jetbrains.kotlin:kotlin-gradle-plugin:2.1.0"
-                force "org.jetbrains.kotlin.plugin.compose:org.jetbrains.kotlin.plugin.compose.gradle.plugin:2.1.0"
-            }
-        }
-    }
+    classpath('com.android.tools.build:gradle')
+    classpath('com.facebook.react:react-native-gradle-plugin')
+    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+  }
 }
 
 allprojects {
-    repositories {
-        maven {
-            url(new File(['node', '--print', "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim(), '../android'))
-        }
-        maven {
-            url(new File(['node', '--print', "require.resolve('jsc-android/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim(), '../dist'))
-        }
-        google()
-        mavenCentral()
-        maven { url 'https://www.jitpack.io' }
-    }
-    configurations.all {
-        resolutionStrategy {
-            force "com.google.android.gms:play-services-ads:23.6.0"
-        }
-    }
+  repositories {
+    google()
+    mavenCentral()
+    maven { url 'https://www.jitpack.io' }
+  }
 }
+
+apply plugin: "expo-root-project"
+apply plugin: "com.facebook.react.rootproject"

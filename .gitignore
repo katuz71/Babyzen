@@ -1,0 +1,25 @@
+node_modules/
+.expo/
+dist/
+npm-debug.*
+
+# env / secrets
+.env
+.env.*
+
+# Supabase local temp
+supabase/.temp/
+
+# Android build artifacts
+android/.gradle/
+android/app/build/
+android/build/
+
+# Firebase config (usually should not be public)
+google-services.json
+android/app/google-services.json
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
