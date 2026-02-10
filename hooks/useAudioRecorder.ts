@@ -1,17 +1,20 @@
-import { useState } from 'react';
-import { Audio } from 'expo-av';
+import { useState, useRef } from 'react';
 import { Alert } from 'react-native';
+import { Audio } from 'expo-av';
+import i18n from '@/lib/i18n';
 
 export const useAudioRecorder = () => {
-  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isRecording, setIsRecording] = useState(false);
-  const [permissionResponse, requestPermission] = Audio.usePermissions();
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const recordingRef = useRef<Audio.Recording | null>(null);
 
   async function startRecording() {
     try {
-      if (permissionResponse?.status !== 'granted') {
-        const resp = await requestPermission();
-        if (resp.status !== 'granted') return;
+      const permission = await Audio.requestPermissionsAsync();
+      setHasPermission(permission.granted);
+      if (!permission.granted) {
+        Alert.alert(i18n.t('errors.recording_permission'));
+        return;
       }
 
       await Audio.setAudioModeAsync({
@@ -23,31 +26,38 @@ export const useAudioRecorder = () => {
         Audio.RecordingOptionsPresets.HIGH_QUALITY
       );
 
-      setRecording(recording);
+      recordingRef.current = recording;
       setIsRecording(true);
       console.log('Recording started');
     } catch (err) {
       console.error('Failed to start recording', err);
-      Alert.alert('Error', 'Could not start recording');
+      Alert.alert(i18n.t('errors.recording_start_failed'));
     }
   }
 
   async function stopRecording() {
-    if (!recording) return;
-    
-    setIsRecording(false);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI(); 
-    setRecording(null);
-    console.log('Recording stopped and stored at', uri);
-    return uri; // Возвращаем путь к файлу для отправки на сервер
+    try {
+      if (!recordingRef.current) return;
+
+      await recordingRef.current.stopAndUnloadAsync();
+      const uri = recordingRef.current.getURI();
+      recordingRef.current = null;
+      setIsRecording(false);
+
+      console.log('Recording stopped and stored at', uri);
+      return uri ?? undefined;
+    } catch (err) {
+      console.error('Failed to stop recording', err);
+      Alert.alert(i18n.t('errors.recording_stop_failed'));
+      return;
+    }
   }
 
   return {
-    recording,
+    recording: recordingRef.current,
     isRecording,
     startRecording,
     stopRecording,
-    hasPermission: permissionResponse?.status === 'granted'
+    hasPermission: hasPermission ?? false,
   };
 };

@@ -5,6 +5,9 @@
     "files.associations": {
         "*.css": "tailwindcss"
     },
+    "typescript.tsserver.exclude": [
+        "**/node_modules/**"
+    ],
     "deno.enable": false,
     "deno.enablePaths": [
         "supabase"

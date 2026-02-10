@@ -56,12 +56,6 @@
             "newArchEnabled": true
           }
         }
-      ],
-      [
-        "expo-av",
-        {
-          "microphonePermission": "Allow BabyZen to listen to baby cries for analysis."
-        }
       ]
     ]
   }

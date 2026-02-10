@@ -1,0 +1,44 @@
+{
+    "app": {
+        "name": "BabyZen",
+        "ready": "LISTO",
+        "listening": "ESCUCHANDO",
+        "analyzing": "ANALIZANDO..."
+    },
+    "tabs": {
+        "record": "Grabar",
+        "history": "Historial"
+    },
+    "record": {
+        "title": "BabyZen",
+        "tip": "Toca la esfera cuando tu bebé llore",
+        "modal": {
+            "confidence": "Confianza",
+            "understand": "ENTENDIDO, GRACIAS"
+        }
+    },
+    "history": {
+        "title": "Diario",
+        "empty": "Aún no hay nada aquí.\n¡Haz tu primer análisis!",
+        "close": "CERRAR"
+    },
+    "soothe": {
+        "button": "CALMAR BEBÉ",
+        "stop": "DETENER SONIDO"
+    },
+    "cry_types": {
+        "hunger": "Hambre",
+        "burp": "Eructo",
+        "sleep": "Sueño",
+        "discomfort": "Incomodidad",
+        "gas": "Gases",
+        "unknown": "Desconocido"
+    },
+    "errors": {
+        "analysis_failed": "Error al analizar",
+        "soothe_failed": "Error al reproducir sonido calmante",
+        "recording_permission": "Sin permiso de grabación",
+        "recording_start_failed": "Error al iniciar grabación",
+        "recording_stop_failed": "Error al detener grabación"
+    }
+}

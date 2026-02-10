@@ -1,0 +1,44 @@
+{
+    "app": {
+        "name": "BabyZen",
+        "ready": "READY",
+        "listening": "LISTENING",
+        "analyzing": "ANALYZING..."
+    },
+    "tabs": {
+        "record": "Record",
+        "history": "History"
+    },
+    "record": {
+        "title": "BabyZen",
+        "tip": "Tap the sphere when your baby cries",
+        "modal": {
+            "confidence": "Confidence",
+            "understand": "GOT IT, THANKS"
+        }
+    },
+    "history": {
+        "title": "Diary",
+        "empty": "Nothing here yet.\nMake your first analysis!",
+        "close": "CLOSE"
+    },
+    "soothe": {
+        "button": "SOOTHE BABY",
+        "stop": "STOP SOUND"
+    },
+    "cry_types": {
+        "hunger": "Hunger",
+        "burp": "Burp",
+        "sleep": "Sleep",
+        "discomfort": "Discomfort",
+        "gas": "Gas",
+        "unknown": "Unknown"
+    },
+    "errors": {
+        "analysis_failed": "Failed to analyze",
+        "soothe_failed": "Failed to play soothing sound",
+        "recording_permission": "No recording permission",
+        "recording_start_failed": "Failed to start recording",
+        "recording_stop_failed": "Failed to stop recording"
+    }
+}

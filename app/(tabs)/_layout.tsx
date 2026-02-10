@@ -1,8 +1,12 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons'; 
+import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
+import '@/lib/i18n';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -20,7 +24,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Анализ',
+          title: t('tabs.record'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "mic" : "mic-outline"} size={28} color={color} />
           ),
@@ -30,7 +34,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Дневник',
+          title: t('tabs.history'),
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? "journal" : "journal-outline"} size={26} color={color} />
           ),

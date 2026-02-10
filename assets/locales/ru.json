@@ -1,0 +1,44 @@
+{
+    "app": {
+        "name": "BabyZen",
+        "ready": "ГОТОВ К ЗАПИСИ",
+        "listening": "ЗАПИСЬ ИДЁТ",
+        "analyzing": "АНАЛИЗИРУЮ..."
+    },
+    "tabs": {
+        "record": "Анализ",
+        "history": "Дневник"
+    },
+    "record": {
+        "title": "BabyZen",
+        "tip": "Нажмите на сферу, когда малыш плачет",
+        "modal": {
+            "confidence": "Уверенность",
+            "understand": "ПОНЯТНО, СПАСИБО"
+        }
+    },
+    "history": {
+        "title": "Дневник",
+        "empty": "Здесь пока пусто.\nСделайте первый анализ!",
+        "close": "ЗАКРЫТЬ"
+    },
+    "soothe": {
+        "button": "SOOTHE BABY",
+        "stop": "STOP SOUND"
+    },
+    "cry_types": {
+        "hunger": "Голод",
+        "burp": "Отрыжка",
+        "sleep": "Сон",
+        "discomfort": "Дискомфорт",
+        "gas": "Газы",
+        "unknown": "Неизвестно"
+    },
+    "errors": {
+        "analysis_failed": "Не удалось проанализировать",
+        "soothe_failed": "Не удалось включить успокаивающий звук",
+        "recording_permission": "Нет разрешения на запись",
+        "recording_start_failed": "Не удалось начать запись",
+        "recording_stop_failed": "Не удалось остановить запись"
+    }
+}
