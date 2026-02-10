@@ -1,44 +1,74 @@
 {
-    "app": {
-        "name": "BabyZen",
-        "ready": "LISTO",
-        "listening": "ESCUCHANDO",
-        "analyzing": "ANALIZANDO..."
-    },
-    "tabs": {
-        "record": "Grabar",
-        "history": "Historial"
-    },
-    "record": {
-        "title": "BabyZen",
-        "tip": "Toca la esfera cuando tu bebé llore",
-        "modal": {
-            "confidence": "Confianza",
-            "understand": "ENTENDIDO, GRACIAS"
-        }
-    },
-    "history": {
-        "title": "Diario",
-        "empty": "Aún no hay nada aquí.\n¡Haz tu primer análisis!",
-        "close": "CERRAR"
-    },
-    "soothe": {
-        "button": "CALMAR BEBÉ",
-        "stop": "DETENER SONIDO"
-    },
-    "cry_types": {
-        "hunger": "Hambre",
-        "burp": "Eructo",
-        "sleep": "Sueño",
-        "discomfort": "Incomodidad",
-        "gas": "Gases",
-        "unknown": "Desconocido"
-    },
-    "errors": {
-        "analysis_failed": "Error al analizar",
-        "soothe_failed": "Error al reproducir sonido calmante",
-        "recording_permission": "Sin permiso de grabación",
-        "recording_start_failed": "Error al iniciar grabación",
-        "recording_stop_failed": "Error al detener grabación"
+  "welcome": {
+    "title": "¿Por qué llora?",
+    "subtitle": "¿Hambre? ¿Dolor? ¿Sueño?\nLa IA detecta la causa en 10 seg.",
+    "trust": "Precisión del análisis 94%"
+  },
+  "common": {
+    "start": "DESCIFRAR LLANTO",
+    "loading": "Cargando..."
+  },
+  "setup": {
+    "title": "Calibración IA",
+    "subtitle": "Ingresa datos para aumentar la precisión al 98%.",
+    "name_label": "NOMBRE DEL BEBÉ",
+    "birth_date_label": "FECHA DE NACIMIENTO",
+    "why_header": "¿POR QUÉ ES IMPORTANTE?",
+    "reason_ai": "La acústica del llanto cambia cada 2 semanas. La edad exacta elimina errores.",
+    "continue": "FINALIZAR AJUSTES"
+  },
+  "paywall": {
+    "title": "Análisis Listo",
+    "subtitle": "Desbloquea el traductor y calma a tu bebé.",
+    "feature1": "Traducción instantánea (IA)",
+    "feature2": "Consejos para calmar",
+    "feature3": "Registro de sueño y cólicos",
+    "feature4": "Sin anuncios. Ilimitado",
+    "cta_trial": "PRUEBA GRATIS",
+    "cta_now": "CONTINUAR",
+    "cta_trial_3days": "3 DÍAS GRATIS!",
+    "disclaimer": "Cancela cuando quieras."
+  },
+  "app": {
+    "name": "BabyZen",
+    "ready": "LISTO PARA GRABAR",
+    "listening": "ESCUCHANDO...",
+    "analyzing": "ANALIZANDO..."
+  },
+  "tabs": {
+    "record": "Analizar",
+    "history": "Diario"
+  },
+  "record": {
+    "title": "BabyZen",
+    "tip": "Toca la esfera cuando el bebé llore",
+    "modal": {
+      "confidence": "Confianza",
+      "understand": "ENTENDIDO"
     }
+  },
+  "history": {
+    "title": "Diario",
+    "empty": "Vacío por ahora.\n¡Haz tu primer análisis!",
+    "close": "CERRAR"
+  },
+  "soothe": {
+    "button": "CALMAR BEBÉ",
+    "stop": "DETENER"
+  },
+  "cry_types": {
+    "hunger": "Hambre",
+    "burp": "Eructo",
+    "sleep": "Sueño",
+    "discomfort": "Incomodidad",
+    "gas": "Gases",
+    "unknown": "Desconocido"
+  },
+  "errors": {
+    "analysis_failed": "Análisis fallido",
+    "soothe_failed": "Fallo al reproducir sonido",
+    "recording_permission": "Sin permiso de grabación",
+    "recording_start_failed": "Fallo al iniciar grabación",
+    "recording_stop_failed": "Fallo al detener grabación"
+  }
 }

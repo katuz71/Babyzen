@@ -1,44 +1,74 @@
 {
-    "app": {
-        "name": "BabyZen",
-        "ready": "READY",
-        "listening": "LISTENING",
-        "analyzing": "ANALYZING..."
-    },
-    "tabs": {
-        "record": "Record",
-        "history": "History"
-    },
-    "record": {
-        "title": "BabyZen",
-        "tip": "Tap the sphere when your baby cries",
-        "modal": {
-            "confidence": "Confidence",
-            "understand": "GOT IT, THANKS"
-        }
-    },
-    "history": {
-        "title": "Diary",
-        "empty": "Nothing here yet.\nMake your first analysis!",
-        "close": "CLOSE"
-    },
-    "soothe": {
-        "button": "SOOTHE BABY",
-        "stop": "STOP SOUND"
-    },
-    "cry_types": {
-        "hunger": "Hunger",
-        "burp": "Burp",
-        "sleep": "Sleep",
-        "discomfort": "Discomfort",
-        "gas": "Gas",
-        "unknown": "Unknown"
-    },
-    "errors": {
-        "analysis_failed": "Failed to analyze",
-        "soothe_failed": "Failed to play soothing sound",
-        "recording_permission": "No recording permission",
-        "recording_start_failed": "Failed to start recording",
-        "recording_stop_failed": "Failed to stop recording"
+  "welcome": {
+    "title": "Why is baby crying?",
+    "subtitle": "Hunger? Pain? Sleep?\nAI detects the reason in 10 seconds.",
+    "trust": "94% Analysis Accuracy"
+  },
+  "common": {
+    "start": "DECODE THE CRY",
+    "loading": "Loading..."
+  },
+  "setup": {
+    "title": "AI Calibration",
+    "subtitle": "Enter baby details to boost accuracy to 98%.",
+    "name_label": "BABY'S NAME",
+    "birth_date_label": "DATE OF BIRTH",
+    "why_header": "WHY ACCURACY MATTERS?",
+    "reason_ai": "Cry acoustics change every 2 weeks. Exact age helps eliminate false positives.",
+    "continue": "FINISH SETUP"
+  },
+  "paywall": {
+    "title": "Analysis Ready",
+    "subtitle": "Unlock the cry translator and soothe your baby.",
+    "feature1": "Instant Cry Translation (AI)",
+    "feature2": "Personalized Soothing Tips",
+    "feature3": "Sleep & Colic Tracker",
+    "feature4": "No Ads. Unlimited Access",
+    "cta_trial": "START FREE TRIAL",
+    "cta_now": "CONTINUE",
+    "cta_trial_3days": "3 DAYS FREE!",
+    "disclaimer": "Cancel anytime in settings."
+  },
+  "app": {
+    "name": "BabyZen",
+    "ready": "READY TO RECORD",
+    "listening": "LISTENING...",
+    "analyzing": "ANALYZING..."
+  },
+  "tabs": {
+    "record": "Analyze",
+    "history": "Journal"
+  },
+  "record": {
+    "title": "BabyZen",
+    "tip": "Tap the sphere when baby cries",
+    "modal": {
+      "confidence": "Confidence",
+      "understand": "GOT IT, THANKS"
     }
+  },
+  "history": {
+    "title": "Journal",
+    "empty": "Empty for now.\nMake your first analysis!",
+    "close": "CLOSE"
+  },
+  "soothe": {
+    "button": "SOOTHE BABY",
+    "stop": "STOP SOUND"
+  },
+  "cry_types": {
+    "hunger": "Hunger",
+    "burp": "Burp",
+    "sleep": "Sleep",
+    "discomfort": "Discomfort",
+    "gas": "Gas",
+    "unknown": "Unknown"
+  },
+  "errors": {
+    "analysis_failed": "Analysis failed",
+    "soothe_failed": "Failed to play sound",
+    "recording_permission": "No recording permission",
+    "recording_start_failed": "Failed to start recording",
+    "recording_stop_failed": "Failed to stop recording"
+  }
 }

@@ -1,100 +1,82 @@
-import { useCallback, useEffect, useState } from 'react';
+
+import { useCallback, useEffect, useState, useRef } from 'react';
 import { Alert } from 'react-native';
-import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
-import type { AudioPlayer } from 'expo-audio';
+import { Audio } from 'expo-av';
+
 
 const WHITE_NOISE_URL =
   'https://upload.wikimedia.org/wikipedia/commons/transcoded/a/aa/White_noise.ogg/White_noise.ogg.mp3';
 
-type SootheState = {
-  isPlaying: boolean;
-  volume: number;
-};
-
-let player: AudioPlayer | null = null;
-let state: SootheState = {
-  isPlaying: false,
-  volume: 0.7,
-};
-
-const listeners = new Set<() => void>();
-
-function emit() {
-  for (const listener of listeners) listener();
-}
 
 export function useSootheSound() {
-  const [, forceUpdate] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(0.7);
+  const soundRef = useRef<Audio.Sound | null>(null);
 
+
+  // Очищаем звук при размонтировании
   useEffect(() => {
-    const listener = () => forceUpdate((v) => (v + 1) % 1_000_000);
-    listeners.add(listener);
     return () => {
-      listeners.delete(listener);
+      if (soundRef.current) {
+        soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
     };
   }, []);
 
   const start = useCallback(async () => {
     try {
-      await setAudioModeAsync({
-        playsInSilentMode: true,
+      await Audio.setAudioModeAsync({
+        playsInSilentModeIOS: true,
+        staysActiveInBackground: true,
       });
 
-      if (!player) {
-        player = createAudioPlayer(
-          { uri: WHITE_NOISE_URL },
-          {
-            updateInterval: 1000,
-            keepAudioSessionActive: true,
-            downloadFirst: true,
-          }
-        );
+      if (soundRef.current) {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
       }
 
-      player.loop = true;
-      player.volume = state.volume;
-      player.play();
-
-      state = { ...state, isPlaying: true };
-      emit();
+      const { sound } = await Audio.Sound.createAsync(
+        { uri: WHITE_NOISE_URL },
+        { shouldPlay: true, isLooping: true, volume }
+      );
+      soundRef.current = sound;
+      setIsPlaying(true);
     } catch (e) {
       console.error(e);
       Alert.alert('Ошибка', 'Не удалось включить белый шум');
     }
-  }, []);
+  }, [volume]);
 
   const stop = useCallback(async () => {
     try {
-      player?.pause?.();
-      player?.remove?.();
-      player = null;
+      if (soundRef.current) {
+        await soundRef.current.stopAsync();
+        await soundRef.current.unloadAsync();
+        soundRef.current = null;
+      }
     } catch (e) {
       console.error(e);
     } finally {
-      state = { ...state, isPlaying: false };
-      emit();
+      setIsPlaying(false);
     }
   }, []);
 
-  const setVolume = useCallback((volume: number) => {
-    state = { ...state, volume };
-    emit();
-  }, []);
-
-  const setVolumeAndApply = useCallback((volume: number) => {
-    state = { ...state, volume };
+  const setVolumeAndApply = useCallback(async (v: number) => {
+    setVolume(v);
     try {
-      if (player) player.volume = volume;
+      if (soundRef.current) {
+        await soundRef.current.setVolumeAsync(v);
+      }
     } catch (e) {
       console.error(e);
-    } finally {
-      emit();
     }
   }, []);
 
   return {
-    isPlaying: state.isPlaying,
-    volume: state.volume,
+    isPlaying,
+    volume,
     start,
     stop,
     setVolume,

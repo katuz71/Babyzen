@@ -56,7 +56,8 @@
             "newArchEnabled": true
           }
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ]
   }
 }

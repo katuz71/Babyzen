@@ -1,4 +1,12 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+
+interface CryHistoryItem {
+  id: number;
+  type: string;
+  created_at: string;
+  reasoning?: string;
+  confidence?: number;
+}
 import {
   View,
   Text,
@@ -37,9 +45,9 @@ const CRY_TYPES: Record<
 
 export default function HistoryScreen() {
   const { t } = useTranslation();
-  const [history, setHistory] = useState<any[]>([]);
+  const [history, setHistory] = useState<CryHistoryItem[]>([]);
   const [loading, setLoading] = useState(false);
-  const [selectedItem, setSelectedItem] = useState<any | null>(null);
+  const [selectedItem, setSelectedItem] = useState<CryHistoryItem | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const soothePlayerRef = useRef<Audio.Sound | null>(null);
@@ -144,7 +152,7 @@ export default function HistoryScreen() {
     setSelectedItem(null);
   };
 
-  const renderItem = ({ item }: { item: any }) => {
+  const renderItem = ({ item }: { item: CryHistoryItem }) => {
     // Приводим тип к регистру (на случай если AI вернул hunger вместо Hunger)
     const typeKey = getTypeKey(item.type);
     const config = CRY_TYPES[typeKey] || CRY_TYPES['Unknown'];
@@ -198,7 +206,7 @@ export default function HistoryScreen() {
 
       <FlatList
         data={history}
-        keyExtractor={(item) => String(item.id)}
+        keyExtractor={(item: CryHistoryItem) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.list}
         refreshControl={
