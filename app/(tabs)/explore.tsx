@@ -27,7 +27,6 @@ import { Audio } from 'expo-av';
 import { pickSmartSootheUrl } from '@/lib/smartSoothe';
 import { useFocusEffect } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import '@/lib/i18n';
 
 const { height } = Dimensions.get('window');
 
@@ -200,9 +199,19 @@ export default function HistoryScreen() {
       <LinearGradient colors={['#000', '#121212', '#1A1A1A']} style={StyleSheet.absoluteFill} />
 
       <View style={styles.header}>
-        <Text style={styles.title}>{t('history.title')}</Text>
-        {loading && <ActivityIndicator color="#FFF" style={{ marginLeft: 10 }} />}
-      </View>
+  {/* Левый спейсер, чтобы центр был реально центром */}
+  <View style={styles.headerSide} />
+
+  {/* Центр */}
+  <Text style={styles.title} numberOfLines={1}>
+    {t('history.title') || 'Дневник'}
+  </Text>
+
+  {/* Правый блок (лоадер) */}
+  <View style={styles.headerSide}>
+    {loading && <ActivityIndicator color="#FFF" />}
+  </View>
+</View>
 
       <FlatList
         data={history}
@@ -290,8 +299,29 @@ export default function HistoryScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingTop: 60, paddingHorizontal: 25, paddingBottom: 20, flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
-  title: { fontSize: 36, fontWeight: '900', color: '#FFF', letterSpacing: -1 },
+  header: {
+  paddingTop: 60,
+  paddingHorizontal: 25,
+  paddingBottom: 20,
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+},
+headerSide: {
+  width: 36,          // ширина под индикатор (и симметричный спейсер слева)
+  height: 36,
+  alignItems: 'center',
+  justifyContent: 'center',
+},
+title: {
+  flex: 1,
+  textAlign: 'center',
+  fontSize: 36,
+  fontWeight: '900',
+  color: '#FFF',
+  letterSpacing: -1,
+},
+
   list: { paddingHorizontal: 20, paddingBottom: 40 },
   card: {
     flexDirection: 'row', backgroundColor: '#1C1C1E',

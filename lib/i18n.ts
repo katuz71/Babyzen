@@ -3,49 +3,64 @@ import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Импорт JSON файлов (убедись, что пути правильные!)
+// JSON локали
 import en from '@/assets/locales/en.json';
 import ru from '@/assets/locales/ru.json';
 import es from '@/assets/locales/es.json';
 
 const LANGUAGE_KEY = 'app_language';
 
+const SUPPORTED_LANGUAGES = ['ru', 'en', 'es'] as const;
+export type AppLanguage = (typeof SUPPORTED_LANGUAGES)[number];
+
 const resources = {
   en: { translation: en },
   ru: { translation: ru },
   es: { translation: es },
-};
+} as const;
 
-// Получаем язык телефона (дефолт)
-const deviceLanguage = Localization.getLocales()[0]?.languageCode ?? 'en';
+function normalizeLanguage(input: unknown): AppLanguage {
+  const lang = String(input || '').toLowerCase();
+  if (SUPPORTED_LANGUAGES.includes(lang as AppLanguage)) return lang as AppLanguage;
+  return 'en';
+}
 
-// 1. Инициализация СРАЗУ (Синхронно для UI)
-i18n
-  .use(initReactI18next)
-  .init({
-    compatibilityJSON: 'v4',
-    resources,
-    lng: deviceLanguage, // Сначала ставим язык телефона, чтобы не было пустоты
-    fallbackLng: 'en',
-    interpolation: {
-      escapeValue: false,
-    },
-    react: {
-      useSuspense: false,
-    },
-  });
+// Язык устройства (только ru/en/es, иначе en)
+const deviceLanguage: AppLanguage = normalizeLanguage(
+  Localization.getLocales()[0]?.languageCode ?? 'en'
+);
 
-// 2. Проверка сохраненного языка (Асинхронно в фоне)
-AsyncStorage.getItem(LANGUAGE_KEY).then((savedLanguage) => {
-  if (savedLanguage && savedLanguage !== deviceLanguage) {
-    i18n.changeLanguage(savedLanguage);
-  }
+// 1) Синхронная инициализация (чтобы UI не мигал)
+i18n.use(initReactI18next).init({
+  compatibilityJSON: 'v4',
+  resources,
+  lng: deviceLanguage,
+  fallbackLng: 'en',
+  interpolation: { escapeValue: false },
+  react: { useSuspense: false },
 });
 
-// Экспорт функции смены языка
-export const changeLanguage = async (lang: string) => {
-  await AsyncStorage.setItem(LANGUAGE_KEY, lang);
-  await i18n.changeLanguage(lang);
+// 2) Асинхронно поднимаем сохранённый выбор (если был)
+AsyncStorage.getItem(LANGUAGE_KEY)
+  .then((saved) => {
+    if (!saved) return;
+
+    const savedLang = normalizeLanguage(saved);
+
+    // Если сохранённый отличается от текущего — применяем
+    if (savedLang !== i18n.language) {
+      i18n.changeLanguage(savedLang);
+    }
+  })
+  .catch(() => {
+    // игнорируем ошибки чтения (например, первый запуск)
+  });
+
+// Экспорт функции смены языка (используй в онбординге)
+export const changeLanguage = async (lang: AppLanguage) => {
+  const normalized = normalizeLanguage(lang);
+  await AsyncStorage.setItem(LANGUAGE_KEY, normalized);
+  await i18n.changeLanguage(normalized);
 };
 
 export default i18n;

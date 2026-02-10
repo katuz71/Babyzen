@@ -29,18 +29,20 @@ export default function BabySetup() {
         try {
             // 1. Сохраняем данные локально (Мгновенно, без интернета)
             const babyData = {
-                name,
-                birthDate: birthDate.toISOString(),
-                isSetup: true
-            };
+             name,
+             birthDate: birthDate.toISOString(),
+             isSetup: true,
+             onboardingFinished: false,
+    };
+
             await AsyncStorage.setItem(BABY_DATA_KEY, JSON.stringify(babyData));
 
             // 2. Идем дальше (Например, на Пейвол или сразу в запись)
             // Пока ведем на Paywall (или заглушку)
-            // router.push('/(onboarding)/paywall'); 
-            
+            // router.replace('/(onboarding)/paywall');
             // ВРЕМЕННО: Ведем сразу в приложение, пока нет пейволла
-            router.push('/(onboarding)/paywall'); 
+            router.replace('/(onboarding)/paywall');
+
 
         } catch (e) {
             console.error(e);

@@ -1,20 +1,34 @@
-// 👇 ЭТО ВКЛЮЧАЕТ ПЕРЕВОДЫ. БЕЗ ЭТОГО ОНИ НЕ РАБОТАЮТ.
-import '@/lib/i18n'; 
-
+import '../global.css';
 import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { LogBox, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import '../global.css'; 
+
+// i18n инициализируется ОДИН РАЗ — здесь
+import '@/lib/i18n';
+
+LogBox.ignoreLogs(['Linking requires a build-time setting']);
 
 export default function RootLayout() {
+  useEffect(() => {
+    console.log('BabyZen Engine: Ready');
+  }, []);
+
   return (
-    <>
-      <StatusBar style="light" backgroundColor="#000000" />
-      
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#000000' } }}>
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <View style={{ flex: 1 }}>
+      <StatusBar style="dark" />
+
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'fade_from_bottom',
+          contentStyle: { backgroundColor: '#FFFFFF' },
+        }}
+      >
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(onboarding)" />
+        <Stack.Screen name="(tabs)" />
       </Stack>
-    </>
+    </View>
   );
 }

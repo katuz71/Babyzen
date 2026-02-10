@@ -8,13 +8,21 @@ import { ThemedText } from '@/components/ThemedText';
 import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons'; // Добавил иконки
 import { LinearGradient } from 'expo-linear-gradient';
 import { Audio } from 'expo-av';
 import { pickSmartSootheUrl } from '@/lib/smartSoothe';
-import { LanguageSwitcher } from '@/components/LanguageSwitcher';
-import { RecordingSphere } from '@/components/RecordingSphere';
-import '@/lib/i18n';
+// Убрали старую сферу, теперь она внутри
+// import { RecordingSphere } from '@/components/RecordingSphere'; 
+// --- ИМПОРТЫ ДЛЯ МАГИИ (АНИМАЦИЯ) ---
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  withSequence,
+  Easing 
+} from 'react-native-reanimated';
 
 const { width, height } = Dimensions.get('window');
 
@@ -38,6 +46,42 @@ function RecordScreen() {
   const soothePlayerRef = useRef<Audio.Sound | null>(null);
   const [isSoothePlaying, setIsSoothePlaying] = useState(false);
 
+  // --- МАГИЯ: АНИМАЦИОННЫЕ ЗНАЧЕНИЯ ---
+  const scale = useSharedValue(1);
+  const opacity = useSharedValue(0.3);
+
+  // --- ЛОГИКА АНИМАЦИИ ---
+  useEffect(() => {
+    if (isRecording) {
+      // 🔴 РЕЖИМ ЗАПИСИ: Быстрое сердцебиение
+      scale.value = withRepeat(
+        withSequence(withTiming(1.2, { duration: 500 }), withTiming(1, { duration: 500 })),
+        -1, true
+      );
+      opacity.value = withRepeat(
+        withSequence(withTiming(0.6, { duration: 500 }), withTiming(0.2, { duration: 500 })),
+        -1, true
+      );
+    } else if (isAnalyzing) {
+      // 🔵 РЕЖИМ АНАЛИЗА: Быстрое нервное мерцание
+      scale.value = withRepeat(withTiming(0.95, { duration: 300 }), -1, true);
+      opacity.value = withRepeat(withTiming(0.5, { duration: 300 }), -1, true);
+    } else {
+      // 💤 РЕЖИМ ПОКОЯ: Медленное дыхание вампира
+      scale.value = withRepeat(
+        withSequence(withTiming(1.05, { duration: 2500 }), withTiming(1, { duration: 2500 })),
+        -1, true
+      );
+      opacity.value = withTiming(0.2, { duration: 1000 });
+    }
+  }, [isRecording, isAnalyzing]);
+
+  const animatedGlowStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
+
+  // --- Очистка звука при уходе ---
   useEffect(() => {
     return () => {
       try {
@@ -68,24 +112,10 @@ function RecordScreen() {
   const startSmartSoothe = async () => {
     try {
       const source = pickSmartSootheUrl(result?.detected_type);
-
-      await Audio.setAudioModeAsync({
-        playsInSilentModeIOS: true,
-        staysActiveInBackground: true,
-      });
-
+      await Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: true });
       await stopSmartSoothe();
-
-      // Для локальных файлов (require) используем expo-av
-      const { sound } = await Audio.Sound.createAsync(
-        source,
-        { shouldPlay: true, isLooping: true, volume: 1.0 }
-      );
-
-      // Устанавливаем максимальную громкость
+      const { sound } = await Audio.Sound.createAsync(source, { shouldPlay: true, isLooping: true, volume: 1.0 });
       await sound.setVolumeAsync(1.0);
-
-      console.log('SmartSoothe: звук запущен');
       soothePlayerRef.current = sound;
       setIsSoothePlaying(true);
     } catch (e) {
@@ -94,41 +124,41 @@ function RecordScreen() {
     }
   };
 
-
   const handlePress = useCallback(async () => {
-    if (isAnalyzing) return;
+    if (isAnalyzing) return; // Блокируем нажатия во время анализа
+    
     if (isRecording) {
+      // ОСТАНОВКА
       const uri = await stopRecording();
       if (uri) {
-        setIsAnalyzing(true);
+        setIsAnalyzing(true); // Включаем анимацию "мозга"
+        
         try {
           const formData = new FormData();
           formData.append('file', { uri, name: 'cry.m4a', type: 'audio/m4a' } as any);
           formData.append('language', i18n.language || 'en');
 
-          // 1. Анализ через AI
           const { data, error } = await supabase.functions.invoke('analyze-cry', { body: formData });
           if (error) throw error;
 
-          // 2. ЗАПИСЬ В БАЗУ ДАННЫХ
-          const { error: dbError } = await supabase
-            .from('cries')
-            .insert([
-              {
-                type: data.detected_type,
-                confidence: data.confidence,
-                reasoning: data.reasoning
-              }
-            ]);
+          const { error: dbError } = await supabase.from('cries').insert([{
+            type: data.detected_type,
+            confidence: data.confidence,
+            reasoning: data.reasoning
+          }]);
 
           if (dbError) console.error("Ошибка сохранения в базу:", dbError);
 
           setResult(data);
           setModalVisible(true);
-        } catch (e) { Alert.alert(t('errors.analysis_failed'), String(e)); }
-        finally { setIsAnalyzing(false); }
+        } catch (e) { 
+          Alert.alert(t('errors.analysis_failed'), String(e)); 
+        } finally { 
+          setIsAnalyzing(false); 
+        }
       }
     } else {
+      // СТАРТ
       await stopSmartSoothe();
       await startRecording();
     }
@@ -141,28 +171,96 @@ function RecordScreen() {
     <View style={styles.root}>
       <LinearGradient colors={['#000', '#121212', '#1A1A1A']} style={StyleSheet.absoluteFill} />
       <ScreenWrapper style={styles.container}>
-        <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <ThemedText variant="h1" style={styles.title}>{t('app.name')}</ThemedText>
-            <LanguageSwitcher />
-          </View>
-          <View style={styles.statusBadge}>
-            <View style={[styles.dot, { backgroundColor: isRecording ? '#FF453A' : isAnalyzing ? '#007AFF' : '#3A3A3C' }]} />
-            <Text style={styles.statusText} numberOfLines={1}>{isAnalyzing ? t('app.analyzing') : isRecording ? t('app.listening') : t('app.ready')}</Text>
-          </View>
-        </View>
+        
+        {/* HEADER */}
+<View style={styles.header}>
+  {/* Верхняя строка: бренд по центру, язык справа */}
+  <View style={styles.headerTop}>
+  <ThemedText variant="h1" style={styles.title}>
+    {String(t('app.name', { defaultValue: 'Baby Zen' })).replace('BabyZen', 'Baby Zen')}
+  </ThemedText>
+</View>
 
+  {/* Статус */}
+  <View style={styles.statusBadge}>
+    <View
+      style={[
+        styles.dot,
+        {
+          backgroundColor: isRecording
+            ? '#FF453A'
+            : isAnalyzing
+            ? '#007AFF'
+            : '#3A3A3C',
+        },
+      ]}
+    />
+    <Text style={styles.statusText} numberOfLines={1}>
+      {isAnalyzing
+        ? t('app.analyzing')
+        : isRecording
+        ? t('app.listening')
+        : t('app.ready')}
+    </Text>
+  </View>
+</View>
+
+        {/* --- ЦЕНТР: МАГИЧЕСКАЯ СФЕРА (Вместо RecordingSphere) --- */}
         <View style={styles.center}>
-          <RecordingSphere
-            key="recording-sphere"
-            isRecording={isRecording}
-            isAnalyzing={isAnalyzing}
-            onPress={handlePress}
-          />
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+            
+            {/* 1. Анимированный GLOOW (Свечение) */}
+            <Animated.View 
+              style={[
+                {
+                  position: 'absolute',
+                  width: 260,
+                  height: 260,
+                  borderRadius: 130,
+                  backgroundColor: isAnalyzing ? '#007AFF' : '#D00000', // Синий при анализе, Красный всегда
+                },
+                animatedGlowStyle
+              ]}
+            />
+
+            {/* 2. Сама кнопка-сфера */}
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handlePress}
+              disabled={isAnalyzing}
+              style={{
+                width: 180,
+                height: 180,
+                borderRadius: 90,
+                backgroundColor: '#121212',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 2,
+                borderColor: isAnalyzing ? '#007AFF' : '#D00000', // Меняем цвет рамки
+                elevation: 20,
+                shadowColor: isAnalyzing ? '#007AFF' : '#D00000',
+                shadowOpacity: 0.5,
+                shadowRadius: 20,
+              }}
+            >
+              {isAnalyzing ? (
+                // Иконка загрузки (мозг или пульс)
+                <MaterialCommunityIcons name="brain" size={60} color="#007AFF" />
+              ) : (
+                // Иконка микрофона или стоп
+                <Ionicons 
+                  name={isRecording ? "stop" : "mic"} 
+                  size={70} 
+                  color={isRecording ? "#D00000" : "#FFF"} 
+                />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View style={styles.footer}><Text style={styles.tipText}>{t('record.tip')}</Text></View>
 
+        {/* MODAL (Твой старый код без изменений) */}
         <Modal animationType="slide" transparent visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
           <View style={styles.modalBackdrop}>
             <LinearGradient colors={currentType.gradient} style={styles.modalBody}>
@@ -193,12 +291,7 @@ function RecordScreen() {
                     color={isSleepType && !isSoothePlaying ? currentType.color : '#FFF'}
                     style={{ marginRight: 10 }}
                   />
-                  <Text
-                    style={[
-                      styles.sootheButtonText,
-                      isSleepType && !isSoothePlaying ? { color: currentType.color } : null,
-                    ]}
-                  >
+                  <Text style={[styles.sootheButtonText, isSleepType && !isSoothePlaying ? { color: currentType.color } : null]}>
                     {isSoothePlaying ? t('soothe.stop') : t('soothe.button')}
                   </Text>
                 </TouchableOpacity>
@@ -220,8 +313,22 @@ function RecordScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1 }, container: { flex: 1, justifyContent: 'space-between' },
   header: { alignItems: 'center', marginTop: 60, height: 140 },
-  headerTop: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { fontWeight: '900', fontSize: 42, lineHeight: 46, color: '#FFF', includeFontPadding: false },
+ headerTop: {
+  width: '100%',
+  alignItems: 'center',
+  justifyContent: 'center',
+  position: 'relative',
+},
+
+  title: {
+  fontWeight: '900',
+  fontSize: 42,
+  lineHeight: 46,
+  color: '#FFF',
+  includeFontPadding: false,
+  letterSpacing: 0.5,
+},
+
   statusBadge: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 15, paddingVertical: 6, borderRadius: 20, marginTop: 15, minWidth: 180 },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 }, statusText: { color: '#FFF', fontSize: 12, fontWeight: '800', lineHeight: 16, includeFontPadding: false },
   center: { alignItems: 'center', justifyContent: 'center', height: width },
