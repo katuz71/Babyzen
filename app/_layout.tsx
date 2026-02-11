@@ -15,14 +15,16 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <View style={{ flex: 1 }}>
-      <StatusBar style="dark" />
+    <View style={{ flex: 1, backgroundColor: '#000000' }}>
+      {/* ИСПРАВЛЕНО: Белый статус-бар для темной темы */}
+      <StatusBar style="light" />
 
       <Stack
         screenOptions={{
           headerShown: false,
           animation: 'fade_from_bottom',
-          contentStyle: { backgroundColor: '#FFFFFF' },
+          // ИСПРАВЛЕНО: Глобальный черный фон (Vampire Mode)
+          contentStyle: { backgroundColor: '#000000' },
         }}
       >
         <Stack.Screen name="index" />

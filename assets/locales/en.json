@@ -1,32 +1,32 @@
 {
   "welcome": {
     "title": "Why is baby crying?",
-    "subtitle": "Hunger? Pain? Sleep?\nAI detects the reason in 10 seconds.",
+    "subtitle": "Hunger? Pain? Tiredness?\nAI detects the reason in 10 seconds.",
     "trust": "94% Analysis Accuracy"
   },
   "common": {
-    "start": "DECODE THE CRY",
+    "start": "DECODE CRY",
     "loading": "Loading..."
   },
   "setup": {
     "title": "AI Calibration",
-    "subtitle": "Enter baby details to boost accuracy to 98%.",
+    "subtitle": "Enter details to boost accuracy to 98%.",
     "name_label": "BABY'S NAME",
     "birth_date_label": "DATE OF BIRTH",
-    "why_header": "WHY ACCURACY MATTERS?",
-    "reason_ai": "Cry acoustics change every 2 weeks. Exact age helps eliminate false positives.",
+    "why_header": "SCIENCE BASED",
+    "reason_ai": "Cry acoustics change every 2 weeks. Exact age eliminates false positives.",
     "continue": "FINISH SETUP"
   },
   "paywall": {
-    "title": "Analysis Ready",
-    "subtitle": "Unlock the cry translator and soothe your baby.",
-    "feature1": "Instant Cry Translation (AI)",
-    "feature2": "Personalized Soothing Tips",
-    "feature3": "Sleep & Colic Tracker",
-    "feature4": "No Ads. Unlimited Access",
-    "cta_trial": "START FREE TRIAL",
-    "cta_now": "CONTINUE",
-    "cta_trial_3days": "3 DAYS FREE!",
+    "title": "Plan Ready",
+    "subtitle": "Unlock AI Translator & Pediatrician Tips.",
+    "feature1": "Accurate Cry Translation (94%)",
+    "feature2": "Personalized Recommendations",
+    "feature3": "Sleep & Feed Tracker",
+    "feature4": "Unlimited 24/7 Access",
+    "cta_trial": "TRY FREE",
+    "cta_now": "SUBSCRIBE",
+    "cta_trial_3days": "3 DAYS FREE",
     "disclaimer": "Cancel anytime in settings."
   },
   "app": {
@@ -44,7 +44,7 @@
     "tip": "Tap the sphere when baby cries",
     "modal": {
       "confidence": "Confidence",
-      "understand": "GOT IT, THANKS"
+      "understand": "GOT IT"
     }
   },
   "history": {

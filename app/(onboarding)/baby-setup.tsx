@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, TextInput, Platform, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Используем локальное хранилище для скорости
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { Text } from '@/components/Text';
 import { Button } from '@/components/Button';
 
-// Ключи для сохранения
+// Экспортируем ключ, чтобы auth.tsx мог его прочитать
 export const BABY_DATA_KEY = 'baby_data_v1';
 
 export default function BabySetup() {
@@ -21,28 +21,25 @@ export default function BabySetup() {
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [loading, setLoading] = useState(false);
 
-    // Скрываем клавиатуру при клике мимо
     const dismissKeyboard = () => Keyboard.dismiss();
 
     const handleSave = async () => {
         setLoading(true);
         try {
-            // 1. Сохраняем данные локально (Мгновенно, без интернета)
             const babyData = {
-             name,
-             birthDate: birthDate.toISOString(),
-             isSetup: true,
-             onboardingFinished: false,
-    };
+                name,
+                birthDate: birthDate.toISOString(),
+                isSetup: true,
+                onboardingFinished: false,
+            };
 
+            // Лог для проверки
+            console.log('💾 BabySetup: Сохраняем данные:', babyData);
+
+            // Сохраняем
             await AsyncStorage.setItem(BABY_DATA_KEY, JSON.stringify(babyData));
 
-            // 2. Идем дальше (Например, на Пейвол или сразу в запись)
-            // Пока ведем на Paywall (или заглушку)
-            // router.replace('/(onboarding)/paywall');
-            // ВРЕМЕННО: Ведем сразу в приложение, пока нет пейволла
-            router.replace('/(onboarding)/paywall');
-
+            router.replace('/(onboarding)/auth');
 
         } catch (e) {
             console.error(e);
@@ -51,7 +48,6 @@ export default function BabySetup() {
         }
     };
 
-    // Форматирование даты для отображения
     const formattedDate = birthDate.toLocaleDateString();
 
     return (
@@ -60,7 +56,7 @@ export default function BabySetup() {
                 <ScreenWrapper style={{ backgroundColor: '#000000' }}>
                     <View className="flex-1 px-6 py-8 justify-between">
 
-                        {/* 1. ШАПКА: Научный подход */}
+                        {/* 1. ШАПКА */}
                         <View className="mt-4">
                             <View className="flex-row items-center mb-4">
                                 <View className="bg-[#D00000] px-3 py-1 rounded-full mr-3">
@@ -81,7 +77,7 @@ export default function BabySetup() {
 
                         {/* 2. ФОРМА ВВОДА */}
                         <View className="space-y-8">
-                            
+
                             {/* Поле ИМЯ */}
                             <View>
                                 <Text className="text-[#D00000] text-xs font-bold uppercase mb-3 ml-1 tracking-wider">
@@ -99,7 +95,7 @@ export default function BabySetup() {
                                         borderRadius: 24,
                                         fontSize: 20,
                                         borderWidth: 1,
-                                        borderColor: name ? '#D00000' : '#333' // Красная рамка, если заполнено
+                                        borderColor: name ? '#D00000' : '#333'
                                     }}
                                 />
                             </View>
@@ -110,7 +106,6 @@ export default function BabySetup() {
                                     {t('setup.birth_date_label')}
                                 </Text>
 
-                                {/* Кнопка вызова календаря (Android/iOS унификация) */}
                                 <TouchableOpacity
                                     onPress={() => setShowDatePicker(true)}
                                     style={{
@@ -130,34 +125,28 @@ export default function BabySetup() {
                                     <Text className="text-2xl">📅</Text>
                                 </TouchableOpacity>
 
-                                {/* Сам пикер (Скрытая логика) */}
                                 {(showDatePicker || (Platform.OS === 'ios' && showDatePicker)) && (
                                     <DateTimePicker
                                         value={birthDate}
                                         mode="date"
-                                        display="default" // На iOS это может быть спиннер или календарь
+                                        display="default"
                                         maximumDate={new Date()}
                                         onChange={(event, date) => {
-                                            // На Android нужно закрывать вручную
                                             if (Platform.OS === 'android') setShowDatePicker(false);
                                             if (date) {
                                                 setBirthDate(date);
-                                                // На iOS можно оставить открытым или закрыть по кнопке "Готово", 
-                                                // здесь упрощаем: закрываем при выборе (для Android), 
-                                                // для iOS можно добавить кнопку "Done" если нужно, но дефолт работает.
-                                                if (Platform.OS === 'ios') setShowDatePicker(false); 
+                                                if (Platform.OS === 'ios') setShowDatePicker(false);
                                             } else {
-                                                // Если отменили
                                                 if (Platform.OS === 'android') setShowDatePicker(false);
                                             }
                                         }}
-                                        themeVariant="dark" // Важно для iOS
+                                        themeVariant="dark"
                                     />
                                 )}
                             </View>
                         </View>
 
-                        {/* 3. ИНФО-БЛОК: Почему это важно (Social/Science Proof) */}
+                        {/* 3. ИНФО-БЛОК */}
                         <View className="bg-[#121212] p-5 rounded-3xl border border-[#222]">
                             <View className="flex-row items-center mb-3">
                                 <Text className="text-xl mr-3">🔬</Text>
@@ -175,9 +164,9 @@ export default function BabySetup() {
                             title={loading ? t('common.loading') : t('setup.continue')}
                             onPress={handleSave}
                             disabled={!name || loading}
-                            style={{ 
-                                backgroundColor: name ? '#D00000' : '#333', // Активная/Неактивная
-                                borderRadius: 30, 
+                            style={{
+                                backgroundColor: name ? '#D00000' : '#333',
+                                borderRadius: 30,
                                 height: 64,
                                 shadowColor: name ? '#D00000' : 'transparent',
                                 shadowOpacity: 0.4,

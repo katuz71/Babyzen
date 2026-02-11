@@ -1,7 +1,7 @@
 {
   "welcome": {
     "title": "¿Por qué llora?",
-    "subtitle": "¿Hambre? ¿Dolor? ¿Sueño?\nLa IA detecta la causa en 10 seg.",
+    "subtitle": "¿Hambre? ¿Dolor? ¿Sueño?\nLa IA detecta la causa en 10 segundos.",
     "trust": "Precisión del análisis 94%"
   },
   "common": {
@@ -10,24 +10,24 @@
   },
   "setup": {
     "title": "Calibración IA",
-    "subtitle": "Ingresa datos para aumentar la precisión al 98%.",
+    "subtitle": "Ingresa los datos para aumentar la precisión al 98%.",
     "name_label": "NOMBRE DEL BEBÉ",
     "birth_date_label": "FECHA DE NACIMIENTO",
     "why_header": "¿POR QUÉ ES IMPORTANTE?",
-    "reason_ai": "La acústica del llanto cambia cada 2 semanas. La edad exacta elimina errores.",
+    "reason_ai": "La acústica cambia cada 2 semanas. La edad exacta elimina errores.",
     "continue": "FINALIZAR AJUSTES"
   },
   "paywall": {
-    "title": "Análisis Listo",
-    "subtitle": "Desbloquea el traductor y calma a tu bebé.",
-    "feature1": "Traducción instantánea (IA)",
-    "feature2": "Consejos para calmar",
-    "feature3": "Registro de sueño y cólicos",
-    "feature4": "Sin anuncios. Ilimitado",
+    "title": "Plan Listo",
+    "subtitle": "Desbloquea el traductor y consejos de pediatras.",
+    "feature1": "Traducción precisa (94%)",
+    "feature2": "Recomendaciones personales",
+    "feature3": "Registro de sueño y comidas",
+    "feature4": "Acceso ilimitado 24/7",
     "cta_trial": "PRUEBA GRATIS",
     "cta_now": "CONTINUAR",
-    "cta_trial_3days": "3 DÍAS GRATIS!",
-    "disclaimer": "Cancela cuando quieras."
+    "cta_trial_3days": "3 DÍAS GRATIS",
+    "disclaimer": "Cancela cuando quieras en ajustes."
   },
   "app": {
     "name": "BabyZen",

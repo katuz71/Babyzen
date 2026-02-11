@@ -5,16 +5,21 @@ export default function OnboardingLayout() {
     <Stack
       screenOptions={{
         headerShown: false,
-        contentStyle: { backgroundColor: '#000000' },
+        contentStyle: { backgroundColor: '#000000' }, // Наш любимый Vampire Mode
       }}
     >
-      {/* Welcome */}
+      {/* 1. Welcome */}
       <Stack.Screen name="index" />
 
-      {/* Baby setup */}
+      {/* 2. Baby setup */}
       <Stack.Screen name="baby-setup" />
 
-      {/* Paywall внутри онбординга */}
+      {/* ========================================== */}
+      {/* 3. НАШ НОВЫЙ ЭКРАН АВТОРИЗАЦИИ (ВСТАВЛЯТЬ СЮДА) */}
+      <Stack.Screen name="auth" />
+      {/* ========================================== */}
+
+      {/* 4. Paywall внутри онбординга */}
       <Stack.Screen
         name="paywall"
         options={{ presentation: 'modal' }}
