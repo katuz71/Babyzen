@@ -1,8 +1,11 @@
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useTranslation } from 'react-i18next';
 
 export default function TabLayout() {
+  const { t } = useTranslation();
+
   return (
     <Tabs
       screenOptions={{
@@ -18,34 +21,31 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#666',
       }}
     >
-      {/* 1. СКРЫВАЕМ INDEX (Ретранслятор) */}
-      <Tabs.Screen 
-        name="index" 
-        options={{ 
-          href: null, // <--- Это убирает кнопку из меню
-        }} 
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
       />
 
-      {/* 2. ЗАПИСЬ (record.tsx) */}
       <Tabs.Screen
         name="record"
         options={{
-          title: 'Анализ',
+          title: t('tabs.record'),
           tabBarIcon: ({ color, focused }) => (
             <View style={{ transform: [{ scale: focused ? 1.1 : 1 }] }}>
-              <Ionicons name={focused ? "mic" : "mic-outline"} size={28} color={color} />
+              <Ionicons name={focused ? 'mic' : 'mic-outline'} size={28} color={color} />
             </View>
           ),
         }}
       />
 
-      {/* 3. ИСТОРИЯ (history.tsx) */}
       <Tabs.Screen
         name="history"
         options={{
-          title: 'Дневник',
+          title: t('tabs.history'),
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? "book" : "book-outline"} size={24} color={color} />
+            <Ionicons name={focused ? 'book' : 'book-outline'} size={24} color={color} />
           ),
         }}
       />
