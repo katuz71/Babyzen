@@ -18,7 +18,8 @@ export default function PaywallScreen() {
   const router = useRouter();
   const { t } = useTranslation();
 
-  const [selectedPlan, setSelectedPlan] = useState<'yearly' | 'weekly'>('yearly');
+  // Тарифы: monthly (месяц) или weekly (неделя)
+  const [selectedPlan, setSelectedPlan] = useState<'monthly' | 'weekly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [babyName, setBabyName] = useState<string>('');
 
@@ -44,9 +45,10 @@ export default function PaywallScreen() {
     return TIER_1_COUNTRIES.includes(region || '') ? 'tier1' : 'tier2';
   }, []);
 
+  // Цены (отображение)
   const prices = {
-    tier1: { yearly: '$59.99', weekly: '$9.99', perWeekInYearly: '$1.15' },
-    tier2: { yearly: '$29.99', weekly: '$4.99', perWeekInYearly: '$0.57' },
+    tier1: { monthly: '$29.99', weekly: '$9.99' },
+    tier2: { monthly: '$14.99', weekly: '$4.99' },
   };
 
   const currentPrices = prices[userTier];
@@ -105,14 +107,15 @@ export default function PaywallScreen() {
             <View 
               className="w-24 h-24 bg-[#111] rounded-full items-center justify-center mb-6 border border-[#333]"
               style={{
-                shadowColor: '#D00000',
+                shadowColor: '#FFD700', // Золотое свечение
                 shadowOffset: { width: 0, height: 0 },
-                shadowOpacity: 0.4,
+                shadowOpacity: 0.3,
                 shadowRadius: 20,
                 elevation: 10
               }}
             >
-              <Text className="text-5xl">🔓</Text>
+              {/* ИЗМЕНЕНО: Золотой замок (#FFD700) */}
+              <Ionicons name="lock-open" size={48} color="#FFD700" />
             </View>
 
             <Text className="text-3xl font-extrabold text-white text-center mb-3 leading-tight">
@@ -125,65 +128,79 @@ export default function PaywallScreen() {
             </Text>
           </View>
 
-          {/* FEATURES LIST */}
+          {/* FEATURES LIST (С ИКОНКАМИ) */}
           <View className="my-8 space-y-5">
-            <FeatureRow text={babyName ? `Почему ${babyName} плачет?` : 'Перевод плача с точностью 95%'} />
-            <FeatureRow text={babyName ? `Персональные советы для ${babyName}` : 'Рекомендации педиатров'} />
-            <FeatureRow text="Трекер сна и кормлений" />
-            <FeatureRow text="Безлимитный доступ 24/7" />
+            <FeatureRow 
+                icon="mic" 
+                text={babyName ? `Почему ${babyName} плачет?` : 'Перевод плача с точностью 95%'} 
+            />
+            <FeatureRow 
+                icon="pulse" 
+                text={babyName ? `Персональные советы для ${babyName}` : 'Рекомендации педиатров'} 
+            />
+            <FeatureRow 
+                icon="moon" 
+                text="Трекер сна и кормлений" 
+            />
+            <FeatureRow 
+                icon="infinite" 
+                text="Безлимитный доступ 24/7" 
+            />
           </View>
 
-          {/* PLANS: Выбор тарифа */}
+          {/* PLANS: Выбор тарифа (РУССКИЙ ЯЗЫК) */}
           <View className="space-y-4 mb-8">
+            {/* Месячный план */}
             <PlanCard
-              active={selectedPlan === 'yearly'}
-              onPress={() => setSelectedPlan('yearly')}
-              title="YEARLY ACCESS"
-              badge="BEST VALUE"
-              subText={`Just ${currentPrices.perWeekInYearly} / week`}
-              price={`${currentPrices.yearly} / year`}
+              active={selectedPlan === 'monthly'}
+              onPress={() => setSelectedPlan('monthly')}
+              title="ДОСТУП НА МЕСЯЦ"
+              badge="ВЫГОДНО"
+              subText="Отмена в любой момент"
+              price={`${currentPrices.monthly} / мес`}
             />
 
+            {/* Недельный план */}
             <PlanCard
               active={selectedPlan === 'weekly'}
               onPress={() => setSelectedPlan('weekly')}
-              title="WEEKLY ACCESS"
-              price={`${currentPrices.weekly} / week`}
+              title="ДОСТУП НА НЕДЕЛЮ"
+              price={`${currentPrices.weekly} / нед`}
             />
           </View>
 
-          {/* CTA BUTTON - ИЗМЕНЕН ТЕКСТ */}
+          {/* CTA BUTTON */}
           <View>
             <Button
-  title={loading ? '' : (t('paywall.cta_trial_3days') || '3 ДНЯ БЕСПЛАТНО')}
-  onPress={handlePurchase}
-  disabled={loading}
-  style={{
-    backgroundColor: '#D00000', // <--- Тот самый красный
-    borderRadius: 30,
-    height: 64,
-    shadowColor: '#D00000',     // Красное свечение
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.5,
-    shadowRadius: 15,
-    elevation: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }}
-  textStyle={{
-    color: '#FFFFFF',
-    fontSize: 20,       // Крупный шрифт для короткого текста
-    fontWeight: '900',
-    letterSpacing: 1,
-    textTransform: 'uppercase',
-  }}
-  icon={loading ? <ActivityIndicator color="white" /> : null}
-/>
+              title={loading ? '' : (t('paywall.cta_trial_3days') || '3 ДНЯ БЕСПЛАТНО')}
+              onPress={handlePurchase}
+              disabled={loading}
+              style={{
+                backgroundColor: '#D00000',
+                borderRadius: 30,
+                height: 64,
+                shadowColor: '#D00000',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.5,
+                shadowRadius: 15,
+                elevation: 10,
+                justifyContent: 'center',
+                alignItems: 'center',
+              }}
+              textStyle={{
+                color: '#FFFFFF',
+                fontSize: 20,
+                fontWeight: '900',
+                letterSpacing: 1,
+                textTransform: 'uppercase',
+              }}
+              icon={loading ? <ActivityIndicator color="white" /> : null}
+            />
 
             <Text className="text-[#555] text-center text-xs mt-5 font-medium px-4">
-              {selectedPlan === 'yearly'
-                ? '3 days free trial, then auto-renews. Cancel anytime.'
-                : 'Recurring billing. Cancel anytime.'}
+              {selectedPlan === 'monthly'
+                ? '3 дня бесплатно, затем автопродление. Отмена в любой момент.'
+                : 'Автопродление. Отмена в любой момент.'}
             </Text>
           </View>
         </View>
@@ -193,11 +210,11 @@ export default function PaywallScreen() {
 }
 
 // Компонент строки преимущества
-function FeatureRow({ text }: { text: string }) {
+function FeatureRow({ text, icon }: { text: string, icon: any }) {
   return (
     <View className="flex-row items-center">
-      <View className="bg-[#1a0505] p-2 rounded-full mr-4 border border-[#330000]">
-        <Feather name="check" size={16} color="#D00000" />
+      <View className="bg-[#1a0505] p-2 rounded-full mr-4 border border-[#330000] w-10 h-10 items-center justify-center">
+        <Ionicons name={icon} size={20} color="#D00000" />
       </View>
       <Text className="text-[#EEE] text-lg font-semibold tracking-tight flex-1">
         {text}
@@ -206,7 +223,7 @@ function FeatureRow({ text }: { text: string }) {
   );
 }
 
-// ИСПРАВЛЕННЫЙ Компонент карточки тарифа
+// Компонент карточки тарифа
 function PlanCard({
   active,
   onPress,
@@ -233,7 +250,6 @@ function PlanCard({
       }`}
     >
       <View className="flex-1">
-        {/* ИЗМЕНЕНО: Бейдж теперь НАД заголовком, чтобы не было наложения */}
         {badge && (
             <View className="self-start bg-[#D00000] px-2 py-0.5 rounded-md mb-2">
               <Text className="text-white text-[10px] font-bold uppercase tracking-wide">
