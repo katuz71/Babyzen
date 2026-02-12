@@ -1,8 +1,8 @@
 {
   "welcome": {
-    "title": "Why is baby crying?",
-    "subtitle": "Hunger? Pain? Tiredness?\nAI detects the reason in 10 seconds.",
-    "trust": "94% Analysis Accuracy"
+    "title": "Why is the baby crying?",
+    "subtitle": "Hungry? Pain? Tired?\nAI will detect the cause in 10 seconds.",
+    "trust": "94% analysis accuracy"
   },
   "common": {
     "start": "DECODE CRY",
@@ -10,51 +10,67 @@
   },
   "setup": {
     "title": "AI Calibration",
-    "subtitle": "Enter details to boost accuracy to 98%.",
-    "name_label": "BABY'S NAME",
+    "subtitle": "Enter baby details to increase accuracy to 98%.",
+    "name_label": "BABY NAME",
     "birth_date_label": "DATE OF BIRTH",
-    "why_header": "SCIENCE BASED",
-    "reason_ai": "Cry acoustics change every 2 weeks. Exact age eliminates false positives.",
+    "why_header": "WHY ACCURACY MATTERS?",
+    "reason_ai": "Cry acoustics change every 2 weeks. Knowing the age reduces errors.",
     "continue": "FINISH SETUP"
   },
   "paywall": {
-    "title": "Plan Ready",
-    "subtitle": "Unlock AI Translator & Pediatrician Tips.",
-    "feature1": "Accurate Cry Translation (94%)",
-    "feature2": "Personalized Recommendations",
-    "feature3": "Sleep & Feed Tracker",
-    "feature4": "Unlimited 24/7 Access",
-    "cta_trial": "TRY FREE",
-    "cta_now": "SUBSCRIBE",
+    "title": "Plan is ready",
+    "title_with_name": "Plan for {{name}} is ready",
+    "title_generic": "Plan is ready",
+    "subtitle": "Unlock AI cry translator and pediatric recommendations.",
+    "feature1": "Accurate cry translation (94%)",
+    "feature2": "Personalized recommendations",
+    "feature3": "Sleep & feeding tracker",
+    "feature4": "Unlimited access 24/7",
+    "feature_cry_with_name": "Why is {{name}} crying?",
+    "feature_cry_generic": "Accurate cry translation (94%)",
+    "feature_tips_with_name": "Personalized tips for {{name}}",
+    "feature_tips_generic": "Personalized recommendations",
+    "feature_tracker": "Sleep & feeding tracker",
+    "feature_unlimited": "Unlimited access 24/7",
+    "plan_month": "MONTHLY ACCESS",
+    "plan_week": "WEEKLY ACCESS",
+    "badge_best": "BEST VALUE",
+    "cancel_anytime": "Cancel anytime",
+    "per_month_suffix": "/ mo",
+    "per_week_suffix": "/ wk",
+    "cta_trial": "TRY FOR FREE",
+    "cta_now": "SUBSCRIBE NOW",
     "cta_trial_3days": "3 DAYS FREE",
-    "disclaimer": "Cancel anytime in settings."
+    "disclaimer": "First 3 days — free, then auto-renewal.",
+    "disclaimer_trial": "3 days free, then auto-renewal. Cancel anytime.",
+    "disclaimer_renew": "Auto-renewal. Cancel anytime."
   },
   "app": {
     "name": "BabyZen",
     "ready": "READY TO RECORD",
-    "listening": "LISTENING...",
+    "listening": "RECORDING",
     "analyzing": "ANALYZING..."
   },
   "tabs": {
     "record": "Analyze",
-    "history": "Journal"
+    "history": "History"
   },
   "record": {
     "title": "BabyZen",
-    "tip": "Tap the sphere when baby cries",
+    "tip": "Tap the sphere when baby is crying",
     "modal": {
       "confidence": "Confidence",
-      "understand": "GOT IT"
+      "understand": "OK, THANKS"
     }
   },
   "history": {
-    "title": "Journal",
-    "empty": "Empty for now.\nMake your first analysis!",
+    "title": "History",
+    "empty": "Nothing here yet.\nRun your first analysis!",
     "close": "CLOSE"
   },
   "soothe": {
-    "button": "SOOTHE BABY",
-    "stop": "STOP SOUND"
+    "button": "SOOTHE",
+    "stop": "STOP"
   },
   "cry_types": {
     "hunger": "Hunger",
@@ -67,7 +83,7 @@
   "errors": {
     "analysis_failed": "Analysis failed",
     "soothe_failed": "Failed to play sound",
-    "recording_permission": "No recording permission",
+    "recording_permission": "Recording permission denied",
     "recording_start_failed": "Failed to start recording",
     "recording_stop_failed": "Failed to stop recording"
   }

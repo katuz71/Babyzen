@@ -1,74 +1,90 @@
 {
   "welcome": {
-    "title": "¿Por qué llora?",
-    "subtitle": "¿Hambre? ¿Dolor? ¿Sueño?\nLa IA detecta la causa en 10 segundos.",
-    "trust": "Precisión del análisis 94%"
+    "title": "¿Por qué llora el bebé?",
+    "subtitle": "¿Hambre? ¿Dolor? ¿Cansancio?\nLa IA detectará la causa en 10 segundos.",
+    "trust": "94% de precisión"
   },
   "common": {
     "start": "DESCIFRAR LLANTO",
     "loading": "Cargando..."
   },
   "setup": {
-    "title": "Calibración IA",
-    "subtitle": "Ingresa los datos para aumentar la precisión al 98%.",
+    "title": "Calibración de IA",
+    "subtitle": "Introduce los datos del bebé para aumentar la precisión al 98%.",
     "name_label": "NOMBRE DEL BEBÉ",
     "birth_date_label": "FECHA DE NACIMIENTO",
     "why_header": "¿POR QUÉ ES IMPORTANTE?",
-    "reason_ai": "La acústica cambia cada 2 semanas. La edad exacta elimina errores.",
-    "continue": "FINALIZAR AJUSTES"
+    "reason_ai": "La acústica del llanto cambia cada 2 semanas. Conocer la edad reduce errores.",
+    "continue": "FINALIZAR CONFIGURACIÓN"
   },
   "paywall": {
-    "title": "Plan Listo",
-    "subtitle": "Desbloquea el traductor y consejos de pediatras.",
-    "feature1": "Traducción precisa (94%)",
-    "feature2": "Recomendaciones personales",
-    "feature3": "Registro de sueño y comidas",
+    "title": "El plan está listo",
+    "title_with_name": "El plan para {{name}} está listo",
+    "title_generic": "El plan está listo",
+    "subtitle": "Desbloquea el traductor de llanto con IA y recomendaciones pediátricas.",
+    "feature1": "Traducción precisa del llanto (94%)",
+    "feature2": "Recomendaciones personalizadas",
+    "feature3": "Seguimiento de sueño y alimentación",
     "feature4": "Acceso ilimitado 24/7",
-    "cta_trial": "PRUEBA GRATIS",
-    "cta_now": "CONTINUAR",
+    "feature_cry_with_name": "¿Por qué llora {{name}}?",
+    "feature_cry_generic": "Traducción precisa del llanto (94%)",
+    "feature_tips_with_name": "Consejos personalizados para {{name}}",
+    "feature_tips_generic": "Recomendaciones personalizadas",
+    "feature_tracker": "Seguimiento de sueño y alimentación",
+    "feature_unlimited": "Acceso ilimitado 24/7",
+    "plan_month": "ACCESO MENSUAL",
+    "plan_week": "ACCESO SEMANAL",
+    "badge_best": "MEJOR OFERTA",
+    "cancel_anytime": "Cancela cuando quieras",
+    "per_month_suffix": "/ mes",
+    "per_week_suffix": "/ sem",
+    "cta_trial": "PROBAR GRATIS",
+    "cta_now": "SUSCRIBIRSE",
     "cta_trial_3days": "3 DÍAS GRATIS",
-    "disclaimer": "Cancela cuando quieras en ajustes."
+    "disclaimer": "Primeros 3 días gratis, luego renovación automática.",
+    "disclaimer_trial": "3 días gratis, luego renovación automática. Cancela cuando quieras.",
+    "disclaimer_renew": "Renovación automática. Cancela cuando quieras."
   },
   "app": {
     "name": "BabyZen",
     "ready": "LISTO PARA GRABAR",
-    "listening": "ESCUCHANDO...",
+    "listening": "GRABANDO",
     "analyzing": "ANALIZANDO..."
   },
   "tabs": {
     "record": "Analizar",
-    "history": "Diario"
+    "history": "Historial"
   },
   "record": {
     "title": "BabyZen",
-    "tip": "Toca la esfera cuando el bebé llore",
+    "tip": "Pulsa la esfera cuando el bebé llore",
     "modal": {
       "confidence": "Confianza",
       "understand": "ENTENDIDO"
     }
   },
   "history": {
-    "title": "Diario",
-    "empty": "Vacío por ahora.\n¡Haz tu primer análisis!",
+    "title": "Historial",
+    "empty": "Aún no hay datos.\n¡Haz tu primer análisis!",
     "close": "CERRAR"
   },
   "soothe": {
-    "button": "CALMAR BEBÉ",
-    "stop": "DETENER"
+    "button": "CALMAR",
+    "stop": "STOP"
   },
   "cry_types": {
     "hunger": "Hambre",
     "burp": "Eructo",
     "sleep": "Sueño",
-    "discomfort": "Incomodidad",
+    "discomfort": "Molestia",
     "gas": "Gases",
     "unknown": "Desconocido"
   },
   "errors": {
-    "analysis_failed": "Análisis fallido",
-    "soothe_failed": "Fallo al reproducir sonido",
-    "recording_permission": "Sin permiso de grabación",
-    "recording_start_failed": "Fallo al iniciar grabación",
-    "recording_stop_failed": "Fallo al detener grabación"
+    "analysis_failed": "Error de análisis",
+    "soothe_failed": "No se pudo reproducir el sonido",
+    "recording_permission": "Permiso de grabación denegado",
+    "recording_start_failed": "Error al iniciar grabación",
+    "recording_stop_failed": "Error al detener grabación"
   }
 }

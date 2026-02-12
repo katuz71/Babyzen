@@ -119,12 +119,13 @@ export default function PaywallScreen() {
             </View>
 
             <Text className="text-3xl font-extrabold text-white text-center mb-3 leading-tight">
-              {babyName ? `План для ${babyName} готов` : (t('paywall.title') || 'Анализ готов')}
+              {babyName
+                ? t('paywall.title_with_name', { name: babyName })
+                : t('paywall.title_generic')}
             </Text>
 
             <Text className="text-[#CCC] text-center text-lg px-2 leading-7 font-medium">
-              {t('paywall.subtitle') ||
-                'Разблокируйте полный доступ к ИИ-переводчику и персональным рекомендациям.'}
+              {t('paywall.subtitle')}
             </Text>
           </View>
 
@@ -132,19 +133,23 @@ export default function PaywallScreen() {
           <View className="my-8 space-y-5">
             <FeatureRow 
                 icon="mic" 
-                text={babyName ? `Почему ${babyName} плачет?` : 'Перевод плача с точностью 95%'} 
+                text={babyName
+                  ? t('paywall.feature_cry_with_name', { name: babyName })
+                  : t('paywall.feature_cry_generic')} 
             />
             <FeatureRow 
                 icon="pulse" 
-                text={babyName ? `Персональные советы для ${babyName}` : 'Рекомендации педиатров'} 
+                text={babyName
+                  ? t('paywall.feature_tips_with_name', { name: babyName })
+                  : t('paywall.feature_tips_generic')} 
             />
             <FeatureRow 
                 icon="moon" 
-                text="Трекер сна и кормлений" 
+                text={t('paywall.feature_tracker')} 
             />
             <FeatureRow 
                 icon="infinite" 
-                text="Безлимитный доступ 24/7" 
+                text={t('paywall.feature_unlimited')} 
             />
           </View>
 
@@ -154,25 +159,25 @@ export default function PaywallScreen() {
             <PlanCard
               active={selectedPlan === 'monthly'}
               onPress={() => setSelectedPlan('monthly')}
-              title="ДОСТУП НА МЕСЯЦ"
-              badge="ВЫГОДНО"
-              subText="Отмена в любой момент"
-              price={`${currentPrices.monthly} / мес`}
+              title={t('paywall.plan_month')}
+              badge={t('paywall.badge_best')}
+              subText={t('paywall.cancel_anytime')}
+              price={`${currentPrices.monthly} ${t('paywall.per_month_suffix')}`}
             />
 
             {/* Недельный план */}
             <PlanCard
               active={selectedPlan === 'weekly'}
               onPress={() => setSelectedPlan('weekly')}
-              title="ДОСТУП НА НЕДЕЛЮ"
-              price={`${currentPrices.weekly} / нед`}
+              title={t('paywall.plan_week')}
+              price={`${currentPrices.weekly} ${t('paywall.per_week_suffix')}`}
             />
           </View>
 
           {/* CTA BUTTON */}
           <View>
             <Button
-              title={loading ? '' : (t('paywall.cta_trial_3days') || '3 ДНЯ БЕСПЛАТНО')}
+              title={loading ? '' : t('paywall.cta_trial_3days')}
               onPress={handlePurchase}
               disabled={loading}
               style={{
@@ -199,8 +204,8 @@ export default function PaywallScreen() {
 
             <Text className="text-[#555] text-center text-xs mt-5 font-medium px-4">
               {selectedPlan === 'monthly'
-                ? '3 дня бесплатно, затем автопродление. Отмена в любой момент.'
-                : 'Автопродление. Отмена в любой момент.'}
+                ? t('paywall.disclaimer_trial')
+                : t('paywall.disclaimer_renew')}
             </Text>
           </View>
         </View>
