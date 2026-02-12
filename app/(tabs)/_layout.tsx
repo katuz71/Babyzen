@@ -1,71 +1,96 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useTranslation } from 'react-i18next';
+import { View, Platform } from 'react-native';
 
 export default function TabLayout() {
-  const { t } = useTranslation();
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarStyle: {
-          backgroundColor: '#000000',
-          borderTopColor: '#333',
-          height: 60,
-          paddingTop: 8,
-          paddingBottom: 8,
-        },
-        tabBarActiveTintColor: '#D00000',
+        tabBarActiveTintColor: '#D00000', // Наш фирменный красный
         tabBarInactiveTintColor: '#666',
+        tabBarStyle: {
+          backgroundColor: '#0B0E14', // Глубокий полночный синий
+          borderTopColor: '#1A1D26',
+          height: Platform.OS === 'ios' ? 88 : 68,
+          paddingBottom: Platform.OS === 'ios' ? 30 : 10,
+          paddingTop: 10,
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+        },
       }}
     >
-      {/* 1. Скрытый индекс (Redirect) */}
+      {/* 1. ГЛАВНАЯ */}
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <Ionicons name="home-sharp" size={24} color={color} />,
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "home" : "home-outline"} size={24} color={color} />
+          ),
         }}
       />
 
-      {/* 2. Вкладка Записи */}
+      {/* 2. ИСТОРИЯ */}
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Logs',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? "journal" : "journal-outline"} size={24} color={color} />
+          ),
+        }}
+      />
+
+      {/* 3. ЗАПИСЬ (ЦЕНТР) */}
       <Tabs.Screen
         name="record"
         options={{
-          title: t('tabs.record') || 'Record',
+          title: 'Analyze',
           tabBarIcon: ({ color, focused }) => (
-            <View style={{ transform: [{ scale: focused ? 1.1 : 1 }] }}>
-              <Ionicons name={focused ? 'mic' : 'mic-outline'} size={28} color={color} />
+            <View 
+              style={{
+                width: 54,
+                height: 54,
+                backgroundColor: focused ? '#D00000' : '#1A1D26',
+                borderRadius: 27,
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginTop: -20, // Приподнимаем кнопку для акцента
+                borderWidth: 4,
+                borderColor: '#0B0E14',
+                shadowColor: '#D00000',
+                shadowOpacity: focused ? 0.4 : 0,
+                shadowRadius: 10,
+              }}
+            >
+              <Ionicons name="mic" size={28} color={focused ? 'white' : '#D00000'} />
             </View>
           ),
         }}
       />
 
-      {/* 3. Вкладка Истории */}
+      {/* 4. ZEN ЗВУКИ */}
       <Tabs.Screen
-        name="history"
+        name="zen"
         options={{
-          title: t('tabs.history') || 'History',
+          title: 'Zen',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons name={focused ? 'book' : 'book-outline'} size={24} color={color} />
+            <Ionicons name={focused ? "leaf" : "leaf-outline"} size={24} color={color} />
           ),
         }}
       />
 
-      {/* 4. Вкладка Ментора (Чат) */}
+      {/* 5. МЕНТОР */}
       <Tabs.Screen
         name="chat"
         options={{
           title: 'Mentor',
           tabBarIcon: ({ color, focused }) => (
-            <Ionicons 
-              name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} 
-              size={24} 
-              color={color} 
-            />
+            <Ionicons name={focused ? "chatbubbles" : "chatbubbles-outline"} size={24} color={color} />
           ),
         }}
       />

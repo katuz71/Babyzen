@@ -38,12 +38,10 @@ export default function DashboardScreen() {
       const { data: cries } = await supabase.from('cries').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1);
       if (cries && cries.length > 0) setLastCry(cries[0]);
 
-      // Получаем ВООБЩЕ последний лог, чтобы понять статус (спит или нет)
       const { data: allLogs } = await supabase.from('logs').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).limit(1);
       const latest = allLogs?.[0];
       setLastLog(latest);
 
-      // Отдельно для инсайта последнее кормление
       const { data: feeds } = await supabase.from('logs').select('*').eq('user_id', user.id).eq('type', 'feeding').order('created_at', { ascending: false }).limit(1);
       setLastFeeding(feeds?.[0]);
 
@@ -55,7 +53,6 @@ export default function DashboardScreen() {
     }
   };
 
-  // Живой таймер сна
   useEffect(() => {
     if (lastLog?.type === 'sleep') {
       timerRef.current = setInterval(() => {
@@ -114,7 +111,10 @@ export default function DashboardScreen() {
 
   return (
     <ScreenWrapper style={{ backgroundColor: COLORS.bg }}>
-      <ScrollView className="flex-1 px-5" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor="#D00000" />}>
+      <ScrollView 
+        className="flex-1 px-5" 
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor="#D00000" />}
+      >
         
         {/* HEADER */}
         <View className="mt-6 mb-8 flex-row justify-between items-center">
@@ -122,7 +122,10 @@ export default function DashboardScreen() {
             <Text className="text-gray-400 text-base">Привет, {profile?.baby_name || 'Мама'}! 👋</Text>
             <Text className="text-white text-3xl font-bold">Baby Zen</Text>
           </View>
-          <TouchableOpacity onPress={() => router.push('/(onboarding)/baby-setup')} className="w-12 h-12 rounded-full bg-[#161B22] items-center justify-center border border-gray-800">
+          <TouchableOpacity 
+            onPress={() => router.push('/settings')} 
+            className="w-12 h-12 rounded-full bg-[#161B22] items-center justify-center border border-gray-800"
+          >
             <Ionicons name="settings-outline" size={24} color="white" />
           </TouchableOpacity>
         </View>
@@ -150,7 +153,6 @@ export default function DashboardScreen() {
         <View className="flex-row justify-between mb-10">
           <ActionButton icon="restaurant" label="Покормил" color={COLORS.feeding} onPress={() => quickLog('feeding')} />
           
-          {/* Динамическая кнопка Сон/Проснулся */}
           {lastLog?.type === 'sleep' ? (
             <ActionButton icon="sunny" label="Проснулся" color="#FFD700" onPress={() => quickLog('wake_up')} />
           ) : (
@@ -162,7 +164,12 @@ export default function DashboardScreen() {
 
         {/* MICROPHONE BUTTON */}
         <View className="items-center mb-10">
-          <TouchableOpacity onPress={() => router.push('/record')} activeOpacity={0.8} className="w-48 h-48 rounded-full items-center justify-center" style={{ backgroundColor: '#161B22', shadowColor: COLORS.accent, shadowOpacity: 0.5, shadowRadius: 20, elevation: 15 }}>
+          <TouchableOpacity 
+            onPress={() => router.push('/record')} 
+            activeOpacity={0.8} 
+            className="w-48 h-48 rounded-full items-center justify-center" 
+            style={{ backgroundColor: '#161B22', shadowColor: COLORS.accent, shadowOpacity: 0.5, shadowRadius: 20, elevation: 15 }}
+          >
             <LinearGradient colors={['#D00000', '#8B0000']} className="w-40 h-40 rounded-full items-center justify-center">
               <Ionicons name="mic" size={60} color="white" />
             </LinearGradient>

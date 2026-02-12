@@ -18,6 +18,7 @@
     "@react-native-google-signin/google-signin": "^13.3.1",
     "@supabase/supabase-js": "^2.95.3",
     "@types/react": "~18.2.79",
+    "date-fns": "^4.1.0",
     "expo": "~51.0.0",
     "expo-apple-authentication": "~6.4.2",
     "expo-av": "~14.0.7",
