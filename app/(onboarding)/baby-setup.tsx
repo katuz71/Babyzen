@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BABY_DATA_KEY } from '@/lib/constants';
 import { View, TextInput, Platform, TouchableOpacity, Keyboard, TouchableWithoutFeedback } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -15,7 +16,6 @@ import { signInAnonymously } from '@/lib/auth';
 // ==========================
 
 // Ключи для сохранения
-export const BABY_DATA_KEY = 'baby_data_v1';
 
 export default function BabySetup() {
     const { t } = useTranslation();

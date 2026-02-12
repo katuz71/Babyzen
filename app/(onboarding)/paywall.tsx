@@ -9,7 +9,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { Text } from '@/components/Text';
 import { Button } from '@/components/Button';
-import { BABY_DATA_KEY } from './baby-setup';
+import { BABY_DATA_KEY } from '@/lib/constants';
 
 // Tier 1: богатые страны
 const TIER_1_COUNTRIES = ['US', 'GB', 'CA', 'AU', 'DE', 'FR', 'IT', 'ES', 'SE', 'NO', 'CH', 'NZ'];

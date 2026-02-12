@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Redirect } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { BABY_DATA_KEY } from "./(onboarding)/baby-setup";
+import { BABY_DATA_KEY } from '@/lib/constants';
 
 export default function Index() {
   const [ready, setReady] = useState(false);

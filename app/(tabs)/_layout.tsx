@@ -1,3 +1,4 @@
+import React from 'react';
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +22,7 @@ export default function TabLayout() {
         tabBarInactiveTintColor: '#666',
       }}
     >
+      {/* 1. Скрытый индекс (Redirect) */}
       <Tabs.Screen
         name="index"
         options={{
@@ -28,10 +30,11 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 2. Вкладка Записи */}
       <Tabs.Screen
         name="record"
         options={{
-          title: t('tabs.record'),
+          title: t('tabs.record') || 'Record',
           tabBarIcon: ({ color, focused }) => (
             <View style={{ transform: [{ scale: focused ? 1.1 : 1 }] }}>
               <Ionicons name={focused ? 'mic' : 'mic-outline'} size={28} color={color} />
@@ -40,12 +43,28 @@ export default function TabLayout() {
         }}
       />
 
+      {/* 3. Вкладка Истории */}
       <Tabs.Screen
         name="history"
         options={{
-          title: t('tabs.history'),
+          title: t('tabs.history') || 'History',
           tabBarIcon: ({ color, focused }) => (
             <Ionicons name={focused ? 'book' : 'book-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+
+      {/* 4. Вкладка Ментора (Чат) */}
+      <Tabs.Screen
+        name="chat"
+        options={{
+          title: 'Mentor',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons 
+              name={focused ? 'chatbubble-ellipses' : 'chatbubble-ellipses-outline'} 
+              size={24} 
+              color={color} 
+            />
           ),
         }}
       />
