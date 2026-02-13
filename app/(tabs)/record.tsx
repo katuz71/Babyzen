@@ -25,6 +25,7 @@ import Animated, {
   withTiming,
   withSequence,
 } from 'react-native-reanimated';
+import { useAppTheme } from '@/lib/ThemeContext'; // <-- Внедряем нашу тему
 
 const { width, height } = Dimensions.get('window');
 
@@ -48,6 +49,7 @@ function normalizeTypeKey(rawType: any): string {
 // --- Result Sheet Content (SmartSoothe PRELOAD) ---
 const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
   const { t } = useTranslation();
+  const { theme } = useAppTheme(); // Тема для модалки
 
   const soothePlayerRef = useRef<Audio.Sound | null>(null);
   const [isSoothePlaying, setIsSoothePlaying] = useState(false);
@@ -76,7 +78,6 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
     }
   };
 
-  // PRELOAD when sheet appears (or when detected_type changes)
   useEffect(() => {
     let mounted = true;
 
@@ -84,7 +85,6 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
       setSootheReady(false);
       setIsSoothePlaying(false);
       try {
-        // unload previous if any
         if (soothePlayerRef.current) {
           await unloadSoothe();
         }
@@ -124,10 +124,8 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
 
     return () => {
       mounted = false;
-      // on unmount, unload (safe)
       unloadSoothe();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.detected_type]);
 
   const toggleSoothe = async () => {
@@ -140,7 +138,6 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
     setSootheBusy(true);
     try {
       if (isSoothePlaying) {
-        // Pause is faster than stop/unload; keeps buffer warm
         await soothePlayerRef.current.pauseAsync();
         setIsSoothePlaying(false);
       } else {
@@ -149,7 +146,6 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
       }
     } catch (e) {
       console.error('toggleSoothe error:', e);
-      // fallback: reset state
       setIsSoothePlaying(false);
       Alert.alert(t('errors.soothe_failed'), (e as Error).message);
     } finally {
@@ -199,9 +195,7 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
           ]}
         >
           <Ionicons
-            name={
-              !sootheReady ? 'hourglass' : isSoothePlaying ? 'stop' : (isSleepType ? 'moon' : 'musical-notes')
-            }
+            name={!sootheReady ? 'hourglass' : isSoothePlaying ? 'stop' : (isSleepType ? 'moon' : 'musical-notes')}
             size={20}
             color={isSleepType && !isSoothePlaying && sootheReady ? currentType.color : '#FFF'}
             style={{ marginRight: 10 }}
@@ -222,7 +216,8 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
       </View>
 
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.whiteButton} onPress={close}>
+        {/* Адаптируем кнопку закрытия под цвет карточек текущей темы */}
+        <TouchableOpacity style={[styles.whiteButton, { backgroundColor: theme.card }]} onPress={close}>
           <Text style={[styles.buttonLabel, { color: currentType.color }]}>
             {t('record.modal.understand')}
           </Text>
@@ -235,6 +230,7 @@ const ResultSheet = ({ data, onClose }: { data: any; onClose: () => void }) => {
 // --- Main Screen ---
 function RecordScreen() {
   const { t, i18n } = useTranslation();
+  const { theme } = useAppTheme(); // <-- Получаем текущую тему
   const { isRecording, startRecording, stopRecording } = useAudioRecorder();
 
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -277,9 +273,7 @@ function RecordScreen() {
     if (isAnalyzing) return;
 
     if (isRecording) {
-      console.log('Stopping recording...');
       const uri = await stopRecording();
-      console.log('STOP uri:', uri);
 
       if (!uri) {
         Alert.alert(t('common.error'), 'Recording failed: No file generated');
@@ -296,15 +290,12 @@ function RecordScreen() {
         formData.append('file', { uri: validUri, name: 'cry.m4a', type: fileType } as any);
         formData.append('language', i18n.language || 'en');
 
-        console.log('Invoking analyze-cry...');
         const res = await supabase.functions.invoke('analyze-cry', { body: formData });
-        console.log('Invoke raw:', JSON.stringify(res));
 
         if (res.error) throw res.error;
         if (!res.data) throw new Error('Supabase function returned null data');
 
         const payload = (res.data as any)?.data ?? res.data;
-        console.log('Payload normalized:', JSON.stringify(payload));
 
         if (!payload?.detected_type) {
           throw new Error('Invalid payload: missing detected_type');
@@ -315,7 +306,6 @@ function RecordScreen() {
         ]);
         if (dbError) console.error('DB Save Error:', dbError);
 
-        console.log('STATE SET CALLED');
         setAnalysisResult(payload);
       } catch (e: any) {
         console.error('Analysis error:', e);
@@ -333,26 +323,29 @@ function RecordScreen() {
   }, []);
 
   return (
-    <View style={styles.root}>
-      <LinearGradient colors={['#000', '#121212', '#1A1A1A']} style={StyleSheet.absoluteFill} />
+    <View style={[styles.root, { backgroundColor: theme.bg }]}>
+      {/* Динамический градиент на фоне */}
+      <LinearGradient colors={[theme.bg, theme.card, theme.bg]} style={StyleSheet.absoluteFill} />
 
       <ScreenWrapper style={styles.container}>
         {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.headerTop}>
-            <ThemedText variant="h1" style={styles.title}>
+            {/* Текст заголовка меняет цвет в зависимости от темы */}
+            <ThemedText variant="h1" style={[styles.title, { color: theme.text }]}>
               {String(t('app.name', { defaultValue: 'Baby Zen' })).replace('BabyZen', 'Baby Zen')}
             </ThemedText>
           </View>
 
-          <View style={styles.statusBadge}>
+          <View style={[styles.statusBadge, { backgroundColor: theme.card }]}>
             <View
               style={[
                 styles.dot,
-                { backgroundColor: isRecording ? '#FF453A' : isAnalyzing ? '#007AFF' : '#3A3A3C' },
+                // Меняем цвет точки в зависимости от статуса и темы
+                { backgroundColor: isRecording ? theme.accent : isAnalyzing ? '#007AFF' : theme.sub },
               ]}
             />
-            <Text style={styles.statusText} numberOfLines={1}>
+            <Text style={[styles.statusText, { color: theme.text }]} numberOfLines={1}>
               {isAnalyzing ? t('app.analyzing') : isRecording ? t('app.listening') : t('app.ready')}
             </Text>
           </View>
@@ -368,7 +361,7 @@ function RecordScreen() {
                   width: 260,
                   height: 260,
                   borderRadius: 130,
-                  backgroundColor: isAnalyzing ? '#007AFF' : '#D00000',
+                  backgroundColor: isAnalyzing ? '#007AFF' : theme.accent, // Пульсация цвета темы
                 },
                 animatedGlowStyle,
               ]}
@@ -382,13 +375,13 @@ function RecordScreen() {
                 width: 180,
                 height: 180,
                 borderRadius: 90,
-                backgroundColor: '#121212',
+                backgroundColor: theme.card, // Цвет "камня" по теме
                 justifyContent: 'center',
                 alignItems: 'center',
                 borderWidth: 2,
-                borderColor: isAnalyzing ? '#007AFF' : '#D00000',
+                borderColor: isAnalyzing ? '#007AFF' : theme.accent,
                 elevation: 20,
-                shadowColor: isAnalyzing ? '#007AFF' : '#D00000',
+                shadowColor: isAnalyzing ? '#007AFF' : theme.accent,
                 shadowOpacity: 0.5,
                 shadowRadius: 20,
               }}
@@ -396,27 +389,29 @@ function RecordScreen() {
               {isAnalyzing ? (
                 <MaterialCommunityIcons name="brain" size={60} color="#007AFF" />
               ) : (
-                <Ionicons name={isRecording ? 'stop' : 'mic'} size={70} color={isRecording ? '#D00000' : '#FFF'} />
+                <Ionicons 
+                  name={isRecording ? 'stop' : 'mic'} 
+                  size={70} 
+                  color={isRecording ? theme.accent : theme.text} 
+                />
               )}
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.footer}>
-          <Text style={styles.tipText}>{t('record.tip')}</Text>
+          <Text style={[styles.tipText, { color: theme.sub }]}>{t('record.tip')}</Text>
         </View>
       </ScreenWrapper>
 
       {/* OVERLAY SHEET */}
       {analysisResult && (
         <View style={styles.overlay} pointerEvents="box-none">
-          {/* Backdrop (tap outside closes) */}
           <TouchableOpacity
             activeOpacity={1}
             onPress={closeSheet}
             style={StyleSheet.absoluteFillObject}
           />
-          {/* Sheet (must be above backdrop) */}
           <View style={styles.sheet} pointerEvents="auto">
             <ResultSheet data={analysisResult} onClose={closeSheet} />
           </View>
@@ -432,24 +427,22 @@ const styles = StyleSheet.create({
 
   header: { alignItems: 'center', marginTop: 60, height: 140 },
   headerTop: { width: '100%', alignItems: 'center', justifyContent: 'center' },
-  title: { fontWeight: '900', fontSize: 42, lineHeight: 46, color: '#FFF', letterSpacing: 0.5 },
+  title: { fontWeight: '900', fontSize: 42, lineHeight: 46, letterSpacing: 0.5 },
   statusBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
     paddingHorizontal: 15,
     paddingVertical: 6,
     borderRadius: 20,
     marginTop: 15,
   },
   dot: { width: 8, height: 8, borderRadius: 4, marginRight: 8 },
-  statusText: { color: '#FFF', fontSize: 12, fontWeight: '800' },
+  statusText: { fontSize: 12, fontWeight: '800' },
 
   center: { alignItems: 'center', justifyContent: 'center', height: width },
   footer: { paddingHorizontal: 30, marginBottom: 40, height: 80, justifyContent: 'flex-start', paddingTop: 10 },
-  tipText: { color: '#FFF', opacity: 0.4, textAlign: 'center', fontSize: 14 },
+  tipText: { opacity: 0.6, textAlign: 'center', fontSize: 14 },
 
-  // Overlay replacement for RN Modal
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'flex-end',
@@ -463,7 +456,6 @@ const styles = StyleSheet.create({
     elevation: 10000,
   },
 
-  // Sheet styles
   modalBody: {
     borderTopLeftRadius: 50,
     borderTopRightRadius: 50,
@@ -500,7 +492,7 @@ const styles = StyleSheet.create({
   sootheButtonText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
 
   buttonContainer: { width: '100%', marginTop: 20 },
-  whiteButton: { width: '100%', paddingVertical: 20, borderRadius: 25, backgroundColor: '#FFF' },
+  whiteButton: { width: '100%', paddingVertical: 20, borderRadius: 25 },
   buttonLabel: { fontSize: 19, fontWeight: '900', textAlign: 'center' },
 });
 

@@ -1,18 +1,17 @@
-import { Text as RNText, TextProps } from 'react-native';
+import React from 'react';
+import { Text as RNText } from 'react-native';
+import { useAppTheme } from '@/lib/ThemeContext';
 
-// Добавляем поддержку className для TypeScript
-interface StyledTextProps extends TextProps {
-    className?: string;
-}
+export const Text = ({ children, style, className, ...props }: any) => {
+  const { theme } = useAppTheme();
 
-export function Text({ className, style, children, ...props }: StyledTextProps & { [key: string]: any }) {
-    return (
-        <RNText
-            className={`text-[#E0E0E0] ${className}`} // Vampire Mode Default
-            style={style}
-            {...props}
-        >
-            {children}
-        </RNText>
-    );
-}
+  return (
+    <RNText 
+      style={[{ color: theme.text }, style]} // ТЕПЕРЬ ЦВЕТ ТЕКСТА АДАПТИВНЫЙ
+      className={className}
+      {...props}
+    >
+      {children}
+    </RNText>
+  );
+};

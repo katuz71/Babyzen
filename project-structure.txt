@@ -1,0 +1,87 @@
+├── .antigravity/
+│   └── rules.md
+├── app/
+│   ├── (onboarding)/
+│   │   ├── _layout.tsx
+│   │   ├── baby-setup.tsx
+│   │   ├── index.tsx
+│   │   └── paywall.tsx
+│   ├── (tabs)/
+│   │   ├── _layout.tsx
+│   │   ├── chat.tsx
+│   │   ├── growth.tsx
+│   │   ├── history.tsx
+│   │   ├── index.tsx
+│   │   ├── record.tsx
+│   │   └── zen.tsx
+│   ├── _layout.tsx
+│   ├── index.tsx
+│   ├── settings.tsx
+│   └── test-sound.tsx
+├── components/
+│   ├── BottomSheetOverlay.tsx
+│   ├── Button.tsx
+│   ├── LanguageSwitcher.tsx
+│   ├── RecordingSphere.tsx
+│   ├── ScreenWrapper.tsx
+│   ├── Text.tsx
+│   └── ThemedText.tsx
+├── docs/
+│   └── i18n-implementation.md
+├── hooks/
+│   ├── useAudioRecorder.ts
+│   └── useSootheSound.ts
+├── lib/
+│   ├── auth.ts
+│   ├── constants.ts
+│   ├── i18n.ts
+│   ├── smartSoothe.ts
+│   ├── supabase.ts
+│   └── ThemeContext.tsx
+├── project-root/
+│   ├── DECISIONS.md
+│   ├── STATUS.md
+│   └── TASK.md
+├── supabase/
+│   ├── .temp/
+│   │   ├── cli-latest
+│   │   ├── gotrue-version
+│   │   ├── pooler-url
+│   │   ├── postgres-version
+│   │   ├── project-ref
+│   │   ├── rest-version
+│   │   ├── storage-migration
+│   │   └── storage-version
+│   ├── functions/
+│   │   ├── _shared/
+│   │   │   └── cors.ts
+│   │   ├── ai-mentor/
+│   │   │   └── index.ts
+│   │   ├── ai-request/
+│   │   │   └── index.ts
+│   │   └── analyze-cry/
+│   │       ├── .npmrc
+│   │       ├── deno.json
+│   │       └── index.ts
+│   └── config.toml
+├── types/
+│   └── nativewind.d.ts
+├── .env
+├── .gitignore
+├── Гайд по запуску.md
+├── app.json
+├── babel.config.js
+├── DECISIONS.md
+├── eas.json
+├── expo-env.d.ts
+├── global.css
+├── index.js
+├── metro.config.js
+├── nativewind-env.d.ts
+├── package-lock.json
+├── package.json
+├── README.md
+├── STATUS.md
+├── tailwind.config.js
+├── TASK.md
+└── tsconfig.json

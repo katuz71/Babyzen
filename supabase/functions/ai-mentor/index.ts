@@ -20,7 +20,7 @@ function calculateAge(birthDate: string) {
   return `${months} мес.`;
 }
 
-// Хелпер 2: Относительное время (чтобы ИИ понимал контекст "только что")
+// Хелпер 2: Относительное время
 function getRelativeTime(dateString: string) {
   const now = new Date();
   const past = new Date(dateString);
@@ -49,57 +49,108 @@ serve(async (req) => {
     const babyName = profile?.baby_name || 'Малыш';
     const babyAge = profile?.baby_dob ? calculateAge(profile.baby_dob) : 'неизвестного возраста';
 
-    // 2. Данные о событиях (Кнопки Покормил/Уложил)
+    // 2. Данные о событиях (Парсим наши новые типы логов)
     const { data: logs } = await supabaseClient
       .from('logs').select('type, created_at').eq('user_id', user_id)
-      .order('created_at', { ascending: false }).limit(5);
+      .order('created_at', { ascending: false }).limit(8);
 
-    const logContext = logs?.length 
-      ? logs.map(l => {
-          const t = l.type === 'feeding' ? 'Кормление' : l.type === 'sleep' ? 'Сон' : 'Подгузник';
-          return `- ${t} (${getRelativeTime(l.created_at)})`;
-        }).join('\n')
-      : "Событий сегодня еще не было.";
+    let sleepState = "Бодрствует";
+    let sleepStateTime = "";
+
+    const formattedLogs = [];
+    if (logs && logs.length > 0) {
+      // Определяем статус сна по самому свежему логу сна
+      const latestSleepLog = logs.find(l => l.type === 'sleep_start' || l.type === 'sleep_wake');
+      if (latestSleepLog) {
+          if (latestSleepLog.type === 'sleep_start') {
+              sleepState = "Спит";
+              sleepStateTime = `(уже ${getRelativeTime(latestSleepLog.created_at)})`;
+          } else {
+              sleepState = "Бодрствует";
+              sleepStateTime = `(проснулся ${getRelativeTime(latestSleepLog.created_at)})`;
+          }
+      }
+
+      // Форматируем список событий для GPT
+      logs.forEach(l => {
+        let t = l.type;
+        if (l.type === 'feeding') t = '🍼 Кормление';
+        else if (l.type === 'sleep_start') t = '😴 Уснул';
+        else if (l.type === 'sleep_wake') t = '☀️ Проснулся';
+        else if (l.type === 'diaper') t = '🧷 Смена подгузника';
+        formattedLogs.push(`- ${t} (${getRelativeTime(l.created_at)})`);
+      });
+    }
+
+    const logContext = formattedLogs.length ? formattedLogs.join('\n') : "Событий сегодня еще не было.";
 
     // 3. Данные о плаче
     const { data: cries } = await supabaseClient
-      .from('cries').select('type, created_at').eq('user_id', user_id)
-      .order('created_at', { ascending: false }).limit(2);
+      .from('cries').select('type, confidence, reasoning, created_at').eq('user_id', user_id)
+      .order('created_at', { ascending: false }).limit(3);
 
     const cryContext = cries?.length 
-      ? cries.map(c => `- Плач "${c.type}" (${getRelativeTime(c.created_at)})`).join('\n')
+      ? cries.map(c => `- Плач "${c.type}" (Точность: ${Math.round(c.confidence * 100)}%, ${getRelativeTime(c.created_at)})`).join('\n')
       : "Записей плача пока нет.";
 
-    // 4. Формируем "Зенитный" Промпт
-    const systemPrompt = `Ты — AI-Ментор Baby Zen. Малыш: ${babyName} (${babyAge}).
+    // 4. Подтягиваем ИСТОРИЮ ЧАТА из БД (Память ИИ)
+    let { data: session } = await supabaseClient
+      .from('chat_sessions').select('id')
+      .eq('user_id', user_id)
+      .order('created_at', { ascending: false })
+      .limit(1).maybeSingle();
     
-ТЕКУЩИЙ СТАТУС (из логов):
+    let chatHistory: any[] = [];
+    
+    if (!session) {
+      const { data: newS } = await supabaseClient.from('chat_sessions').insert({ user_id, topic: 'Daily Zen' }).select().single();
+      session = newS;
+    } else {
+      // Достаем последние 6 сообщений для контекста
+      const { data: pastMsgs } = await supabaseClient.from('chat_messages')
+          .select('role, content')
+          .eq('session_id', session.id)
+          .order('created_at', { ascending: false })
+          .limit(6);
+      
+      if (pastMsgs) {
+          // Переворачиваем массив, чтобы старые сообщения шли первыми
+          chatHistory = pastMsgs.reverse().map(m => ({ role: m.role, content: m.content }));
+      }
+    }
+
+    // 5. Формируем "Зенитный" Промпт
+    const systemPrompt = `Ты — AI-Ментор Baby Zen, опытный педиатр и консультант по сну.
+Твой тон: спокойный, эмпатичный, уверенный.
+Имя малыша: ${babyName} (${babyAge}).
+Текущее состояние: ${sleepState} ${sleepStateTime}.
+
+ХРОНОЛОГИЯ СОБЫТИЙ СЕГОДНЯ:
 ${logContext}
 
-ПОСЛЕДНИЕ ЗАПИСИ ПЛАЧА:
+ПОСЛЕДНИЕ АНАЛИЗЫ ПЛАЧА:
 ${cryContext}
 
 ТВОЯ ЗАДАЧА:
-Давай короткие (2-3 предложения) и точные советы. 
-Если юзер спрашивает про сон или еду, обязательно сверяйся со списком ТЕКУЩИЙ СТАТУС. 
-Например, если написано "Кормление (3 ч. назад)", значит пора кушать. Если "Сон (только что)", значит ребенок должен спать.`;
+1. Давай короткие (3-4 предложения) и предельно конкретные советы.
+2. Опирайся на хронологию. Если малыш спит — учитывай это. Если плачет от голода и с последнего кормления прошло больше 2-3 часов — рекомендуй покормить.
+3. Не пиши общие фразы. Действуй как личный врач, который смотрит в медкарту.`;
+
+    // 6. Вызов OpenAI с полной историей сообщений
+    const messagesToSend = [
+      { role: "system", content: systemPrompt },
+      ...chatHistory, // Вставляем предыдущий диалог
+      { role: "user", content: message } // Добавляем новый вопрос
+    ];
 
     const completion = await openai.chat.completions.create({
       model: "gpt-4o",
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: message }
-      ],
+      messages: messagesToSend,
     });
 
     const aiResponse = completion.choices[0].message.content;
 
-    // 5. Сохраняем в историю чата (чтобы не забыть диалог)
-    let { data: session } = await supabaseClient.from('chat_sessions').select('id').eq('user_id', user_id).order('created_at', { ascending: false }).limit(1).maybeSingle();
-    if (!session) {
-      const { data: newS } = await supabaseClient.from('chat_sessions').insert({ user_id, topic: 'Daily Zen' }).select().single();
-      session = newS;
-    }
+    // 7. Сохраняем новый вопрос и ответ в историю
     await supabaseClient.from('chat_messages').insert([
       { session_id: session.id, role: 'user', content: message },
       { session_id: session.id, role: 'assistant', content: aiResponse }
