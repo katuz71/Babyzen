@@ -21,7 +21,7 @@ export const ScreenWrapper = ({ children, style }: Props) => {
           backgroundColor: theme.bg, // Теперь цвет зависит от темы
           paddingTop: insets.top,
           paddingBottom: insets.bottom,
-          paddingHorizontal: 20 
+          paddingHorizontal: theme.spacing.lg // Используем токен spacing
         }, 
         style
       ]}

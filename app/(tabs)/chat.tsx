@@ -16,10 +16,7 @@ import { Ionicons, Feather } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { supabase } from '@/lib/supabase';
-import { useAppTheme } from '@/lib/ThemeContext';
-
-// 🔴 ТОТ САМЫЙ КРАСНЫЙ ИЗ ПЕЙВОЛЛА
-const BRAND_RED = '#D00000'; 
+import { useAppTheme } from '@/lib/ThemeContext'; 
 
 export default function ChatScreen() {
   const { theme } = useAppTheme();
@@ -136,9 +133,8 @@ export default function ChatScreen() {
             <Ionicons name="chevron-back" size={28} color={theme.text} />
           </TouchableOpacity>
           <View style={styles.headerInfo}>
-            {/* ИСПРАВЛЕНО: Используем Ionicons для sparkles */}
-            <View style={[styles.avatar, { borderColor: `${BRAND_RED}40` }]}>
-              <Ionicons name="sparkles" size={18} color={BRAND_RED} />
+            <View style={[styles.avatar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <Ionicons name="sparkles" size={18} color={theme.accent} />
             </View>
             <Text style={[styles.headerTitle, { color: theme.text }]}>AI Педиатр</Text>
           </View>
@@ -157,14 +153,14 @@ export default function ChatScreen() {
                 styles.bubble, 
                 isUser ? styles.userBubble : styles.aiBubble,
                 { 
-                  backgroundColor: isUser ? BRAND_RED : theme.card,
-                  borderColor: isUser ? BRAND_RED : theme.border 
+                  backgroundColor: isUser ? theme.surface2 : theme.surface,
+                  borderColor: theme.border 
                 }
               ]}>
                 {msg.is_loading ? (
-                  <ActivityIndicator color={BRAND_RED} size="small" />
+                  <ActivityIndicator color={theme.accent} size="small" />
                 ) : (
-                  <Text style={[styles.text, { color: isUser ? '#FFF' : '#BBB' }]}>
+                  <Text style={[styles.text, { color: isUser ? theme.text : theme.mutedText }]}>
                     {msg.content}
                   </Text>
                 )}
@@ -176,9 +172,9 @@ export default function ChatScreen() {
         {/* INPUT */}
         <View style={[styles.inputRow, { backgroundColor: theme.bg, borderTopColor: theme.border }]}>
           <TextInput
-            style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
+            style={[styles.input, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="Ваш вопрос..."
-            placeholderTextColor={theme.sub}
+            placeholderTextColor={theme.mutedText}
             value={inputText}
             onChangeText={setInputText}
             multiline
@@ -186,12 +182,12 @@ export default function ChatScreen() {
           <TouchableOpacity 
             onPress={() => sendMessage()}
             disabled={!inputText.trim() || sending}
-            style={[styles.sendBtn, { backgroundColor: inputText.trim() ? BRAND_RED : theme.card }]}
+            style={[styles.sendBtn, { backgroundColor: inputText.trim() ? theme.accent : theme.surface }]}
           >
             {sending ? (
               <ActivityIndicator color="#FFF" />
             ) : (
-              <Ionicons name="arrow-up" size={24} color={inputText.trim() ? '#FFF' : theme.sub} />
+              <Ionicons name="arrow-up" size={24} color={inputText.trim() ? '#FFF' : theme.mutedText} />
             )}
           </TouchableOpacity>
         </View>
@@ -218,7 +214,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', 
     justifyContent: 'center', 
     marginRight: 12, 
-    backgroundColor: '#1A0505', 
     borderWidth: 1 
   },
   headerTitle: { fontSize: 18, fontWeight: '900' },

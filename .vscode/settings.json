@@ -6,11 +6,12 @@
         "*.css": "tailwindcss"
     },
     "typescript.tsserver.exclude": [
-        "**/node_modules/**"
+        "**/node_modules/**",
+        "supabase/functions/**"
     ],
     "deno.enable": false,
     "deno.enablePaths": [
-        "supabase"
+        "supabase/functions"
     ],
-    "deno.importMap": "./supabase/functions/import_map.json"
+    "deno.config": "./supabase/functions/deno.json"
 }

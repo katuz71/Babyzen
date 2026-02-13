@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, ScrollView, TouchableOpacity, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
@@ -6,20 +6,23 @@ import { Text } from '@/components/Text';
 import { supabase } from '@/lib/supabase';
 import { format, isToday, isYesterday } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useAppTheme } from '@/lib/ThemeContext';
 
-// Цвета категорий
-const EVENT_CONFIG: any = {
+// Функция для создания конфигурации событий на основе темы
+const createEventConfig = (accentColor: string) => ({
   feeding: { label: 'Кормление', icon: 'restaurant', color: '#F3C623' },
   sleep: { label: 'Сон', icon: 'moon', color: '#A78BFA' },
   wake_up: { label: 'Проснулся', icon: 'sunny', color: '#FFD700' },
   diaper: { label: 'Смена подгузника', icon: 'water', color: '#4FD1C5' },
-  Hunger: { label: 'Плач: Голод', icon: 'alert-circle', color: '#D00000' },
-  Discomfort: { label: 'Плач: Дискомфорт', icon: 'alert-circle', color: '#D00000' },
-  Tired: { label: 'Плач: Усталость', icon: 'alert-circle', color: '#D00000' },
-  Colic: { label: 'Плач: Колики', icon: 'alert-circle', color: '#D00000' },
-};
+  Hunger: { label: 'Плач: Голод', icon: 'alert-circle', color: accentColor },
+  Discomfort: { label: 'Плач: Дискомфорт', icon: 'alert-circle', color: accentColor },
+  Tired: { label: 'Плач: Усталость', icon: 'alert-circle', color: accentColor },
+  Colic: { label: 'Плач: Колики', icon: 'alert-circle', color: accentColor },
+});
 
 export default function HistoryScreen() {
+  const { theme } = useAppTheme();
+  const EVENT_CONFIG = useMemo(() => createEventConfig(theme.accent), [theme.accent]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [events, setEvents] = useState<any[]>([]);
@@ -58,13 +61,13 @@ export default function HistoryScreen() {
     return format(d, 'd MMMM', { locale: ru });
   };
 
-  if (loading) return <View className="flex-1 bg-[#0B0E14] items-center justify-center"><ActivityIndicator color="#D00000" /></View>;
+  if (loading) return <View className="flex-1 items-center justify-center" style={{ backgroundColor: theme.bg }}><ActivityIndicator color={theme.accent} /></View>;
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#0B0E14' }}>
+    <ScreenWrapper style={{ backgroundColor: theme.bg }}>
       <ScrollView 
         className="flex-1 px-5"
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchHistory(); }} tintColor="#D00000" />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchHistory(); }} tintColor={theme.accent} />}
       >
         <View className="mt-6 mb-8">
           <Text className="text-gray-400 text-sm uppercase tracking-widest font-bold">Архив</Text>

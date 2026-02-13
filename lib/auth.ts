@@ -36,16 +36,16 @@ export const signInAndSyncProfile = async () => {
       const { name, birthDate } = JSON.parse(rawData);
       console.log('🔄 Sync: Отправляем профиль в Supabase...', { name, birthDate });
 
-      // 3. Пишем в таблицу PROFILES (используем baby_dob согласно SQL схеме)
+      // 3. Обновляем профиль (он уже создан trigger'ом)
       const { error: profileError } = await supabase
         .from('profiles')
-        .upsert({
-          id: user.id,
+        .update({
           baby_name: name,
-          baby_dob: birthDate, // <-- Исправлено на baby_dob
+          baby_dob: birthDate,
           tier: 'free',
           updated_at: new Date().toISOString(),
-        });
+        })
+        .eq('id', user.id);
 
       if (profileError) {
         console.error('❌ Ошибка профиля:', profileError.message);

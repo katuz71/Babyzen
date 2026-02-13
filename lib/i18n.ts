@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import * as Localization from 'expo-localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { supabase } from '@/lib/supabase';
 
 // JSON локали
 import en from '@/assets/locales/en.json';
@@ -61,6 +62,15 @@ export const changeLanguage = async (lang: AppLanguage) => {
   const normalized = normalizeLanguage(lang);
   await AsyncStorage.setItem(LANGUAGE_KEY, normalized);
   await i18n.changeLanguage(normalized);
+
+  // Сохранить в profiles
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    await supabase
+      .from('profiles')
+      .update({ language: normalized })
+      .eq('id', user.id);
+  }
 };
 
 export default i18n;

@@ -6,22 +6,26 @@ import { useTranslation } from 'react-i18next';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { Text } from '@/components/Text';
 import { Button } from '@/components/Button';
+import { useAppTheme } from '@/lib/ThemeContext';
 
 export default function OnboardingWelcome() {
   const router = useRouter();
   const { t } = useTranslation();
+  const { theme } = useAppTheme();
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#000000' }}>
+    <ScreenWrapper style={{ backgroundColor: theme.bg }}>
       <View className="flex-1 px-6 py-12 justify-between items-center">
         
         {/* === ВЕРХ: БРЕНД И ЛОГО === */}
         <View className="items-center pt-16">
           {/* Логотип с дорогим свечением */}
           <View 
-            className="w-32 h-32 bg-[#0A0A0A] rounded-full items-center justify-center mb-8 border border-[#222]"
+            className="w-32 h-32 rounded-full items-center justify-center mb-8 border"
             style={{ 
-              shadowColor: '#D00000', 
+              backgroundColor: theme.surface,
+              borderColor: theme.border,
+              shadowColor: theme.accent, 
               shadowOffset: { width: 0, height: 0 }, 
               shadowOpacity: 0.4, 
               shadowRadius: 35,
@@ -32,7 +36,7 @@ export default function OnboardingWelcome() {
           </View>
 
           {/* Название бренда: Широкий трекинг = Премиум */}
-          <Text className="text-2xl font-black text-white text-center tracking-[0.4em] uppercase opacity-90">
+          <Text style={{ color: theme.text }} className="text-2xl font-black text-center tracking-[0.4em] uppercase opacity-90">
             Baby Zen
           </Text>
         </View>
@@ -41,15 +45,15 @@ export default function OnboardingWelcome() {
         {/* === ЦЕНТР: ГЛАВНЫЙ ВОПРОС === */}
         <View className="items-center w-full">
           {/* Тонкий эстетичный разделитель */}
-          <View className="w-16 h-[1px] bg-[#444] rounded-full mb-8 opacity-60" />
+          <View style={{ backgroundColor: theme.border }} className="w-16 h-[1px] rounded-full mb-8 opacity-60" />
 
           {/* Заголовок */}
-          <Text className="text-4xl text-white text-center font-bold leading-tight mb-6 tracking-tight">
+          <Text style={{ color: theme.text }} className="text-4xl text-center font-bold leading-tight mb-6 tracking-tight">
             {t('welcome.title') || 'Почему он плачет?'}
           </Text>
 
           {/* Подзаголовок (Сжал px-10, чтобы текст лег пирамидкой, а не висел одной строкой) */}
-          <Text className="text-lg text-[#888] text-center leading-8 font-medium px-10">
+          <Text style={{ color: theme.mutedText }} className="text-lg text-center leading-8 font-medium px-10">
             {t('welcome.subtitle') || 'Голод? Боль? Усталость?\nИИ определит причину за 10 секунд.'}
           </Text>
         </View>
@@ -61,10 +65,10 @@ export default function OnboardingWelcome() {
             title={t('common.start') || 'РАСШИФРОВАТЬ ПЛАЧ'}
             onPress={() => router.replace('/(onboarding)/baby-setup')}
             style={{ 
-              backgroundColor: '#D00000', 
+              backgroundColor: theme.accent, 
               borderRadius: 35, // Более скругленная кнопка
               height: 72,       // Высокая, удобная для пальца
-              shadowColor: '#ff0000',
+              shadowColor: theme.accent,
               shadowOffset: { width: 0, height: 10 },
               shadowOpacity: 0.3,
               shadowRadius: 20,
@@ -83,7 +87,7 @@ export default function OnboardingWelcome() {
             }}
           />
 
-          <Text className="text-[#555] text-center text-[10px] mt-6 font-bold tracking-[0.2em] uppercase opacity-60">
+          <Text style={{ color: theme.mutedText }} className="text-center text-[10px] mt-6 font-bold tracking-[0.2em] uppercase opacity-60">
             {t('welcome.trust') || 'TRUSTED BY 10,000+ PARENTS'}
           </Text>
         </View>
