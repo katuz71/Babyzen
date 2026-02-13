@@ -1,224 +1,177 @@
 import React, { useEffect, useState } from 'react';
-import { View, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Alert, Linking, Platform } from 'react-native';
+import { View, ScrollView, TouchableOpacity, TextInput, Switch, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import DateTimePicker from '@react-native-community/datetimepicker'; 
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { Text } from '@/components/Text';
 import { supabase } from '@/lib/supabase';
-import { changeLanguage } from '@/lib/i18n';
-// Импортируем наш движок тем и тип ThemeName
-import { useAppTheme, ThemeName } from '@/lib/ThemeContext'; 
+import { useAppTheme } from '@/lib/ThemeContext';
+
+const BRAND_RED = '#D00000';
 
 export default function SettingsScreen() {
+  // Убрали toggleTheme и themeName — у нас только строгий Vampire Mode
+  const { theme } = useAppTheme();
   const router = useRouter();
-  const { theme, themeName, updateTheme } = useAppTheme();
   
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   
-  // Состояние профиля
-  const [profile, setProfile] = useState({
-    baby_name: '',
-    baby_dob: '', 
-    baby_weight: '',
-    baby_height: '',
-    parent_email: '',
-    app_language: 'ru'
-  });
+  // Локальные стейты для инпутов
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [pushEnabled, setPushEnabled] = useState(false);
 
-  useEffect(() => { fetchProfile(); }, []);
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   const fetchProfile = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
-      if (data) {
-        setProfile({
-          baby_name: data.baby_name || '',
-          baby_dob: data.baby_dob || '', 
-          baby_weight: data.baby_weight?.toString() || '',
-          baby_height: data.baby_height?.toString() || '',
-          parent_email: data.parent_email || user.email || '',
-          app_language: data.app_language || 'ru'
-        });
-      }
-    } catch (e) { 
-      console.error(e); 
-    } finally { 
-      setLoading(false); 
+    const { data: { user } } = await supabase.auth.getUser();
+    // ИСПРАВЛЕНИЕ: Добавили as any, чтобы строгий TS роутера не ругался на динамический путь
+    if (!user) { router.replace('/(onboarding)/auth' as any); return; }
+    
+    const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
+    if (data) {
+      setProfile(data);
+      setWeight(data.weight ? data.weight.toString() : '');
+      setHeight(data.height ? data.height.toString() : '');
+      setPushEnabled(!!data.push_token);
     }
+    setLoading(false);
   };
 
-  const handleSave = async () => {
+  const saveProfile = async () => {
+    if (!profile) return;
     setSaving(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          baby_name: profile.baby_name,
-          baby_dob: profile.baby_dob || null,
-          baby_weight: parseFloat(profile.baby_weight) || null,
-          baby_height: parseFloat(profile.baby_height) || null,
-          parent_email: profile.parent_email,
-          app_language: profile.app_language,
-          app_theme: themeName 
-        })
-        .eq('id', user?.id);
-
-      if (error) throw error;
-      Alert.alert("Прекрасно", "Ваши данные обновлены ✨");
+      await supabase.from('profiles').update({
+        weight: weight ? parseFloat(weight) : null,
+        height: height ? parseFloat(height) : null,
+      }).eq('id', profile.id);
+      Alert.alert('Готово', 'Данные малыша сохранены.');
     } catch (e: any) {
-      Alert.alert("Ошибка", e.message);
+      Alert.alert('Ошибка', e.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const cycleLanguage = async () => {
-    const langs = ['ru', 'en', 'es'];
-    const next = langs[(langs.indexOf(profile.app_language) + 1) % langs.length];
-    setProfile({ ...profile, app_language: next });
-    await changeLanguage(next as any);
-  };
-
-  const cycleTheme = () => {
-    // ИСПРАВЛЕНИЕ: Строго указываем TypeScript, что массив содержит только ключи тем
-    const th: ThemeName[] = ['dark', 'pink', 'blue'];
-    const next = th[(th.indexOf(themeName) + 1) % th.length];
-    updateTheme(next);
-  };
-
-  const onDateChange = (event: any, selectedDate?: Date) => {
-    setShowDatePicker(false);
-    if (selectedDate) {
-      setProfile({ ...profile, baby_dob: selectedDate.toISOString().split('T')[0] });
+  const handlePushToggle = async (val: boolean) => {
+    setPushEnabled(val);
+    if (val) {
+      Alert.alert('Push', 'Здесь мы запросим права на пуши и сохраним токен.');
+    } else {
+      await supabase.from('profiles').update({ push_token: null }).eq('id', profile?.id);
     }
   };
 
-  // ИСПРАВЛЕНИЕ: Экран загрузки теперь тоже подчиняется дизайн-токенам
-  if (loading) {
-    return (
-      <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color={theme.accent} size="large" />
-      </View>
-    );
-  }
+  if (loading) return <View style={{ flex: 1, backgroundColor: theme.bg, justifyContent: 'center' }}><ActivityIndicator color={BRAND_RED} /></View>;
 
   return (
     <ScreenWrapper style={{ backgroundColor: theme.bg }}>
-      <ScrollView className="flex-1 px-6" showsVerticalScrollIndicator={false}>
+      <View style={[styles.header, { borderBottomColor: theme.border }]}>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Ionicons name="chevron-back" size={28} color={theme.text} />
+        </TouchableOpacity>
+        <Text style={[styles.title, { color: theme.text }]}>Профиль & Настройки</Text>
+        <View style={{ width: 40 }} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
         
-        {/* HEADER */}
-        <View className="flex-row items-center justify-between mt-6 mb-8">
-          <TouchableOpacity onPress={() => router.back()} style={{ backgroundColor: theme.card }} className="p-2 rounded-full shadow-sm">
-            <Ionicons name="arrow-back" size={24} color={theme.accent} />
-          </TouchableOpacity>
-          <Text style={{ color: theme.text }} className="text-xl font-black italic uppercase">Профиль</Text>
-          <TouchableOpacity onPress={handleSave} disabled={saving}>
-            {saving ? <ActivityIndicator color={theme.accent} /> : <Text style={{ color: theme.accent }} className="font-bold text-lg italic">Готово</Text>}
-          </TouchableOpacity>
-        </View>
-
-        {/* СЕКЦИЯ: МАЛЫШ */}
-        <View className="mb-6">
-          <Text style={{ color: theme.sub }} className="font-bold uppercase tracking-[2px] text-[10px] mb-3 ml-2">Малыш</Text>
-          <View style={{ backgroundColor: theme.card, borderColor: theme.border }} className="rounded-[32px] p-6 border shadow-sm">
-            <SettingInput theme={theme} label="Имя" value={profile.baby_name} onChange={(v: string) => setProfile({...profile, baby_name: v})} icon="heart" />
-            
-            <Text style={{ color: theme.sub }} className="text-[10px] font-bold uppercase mb-2 ml-1 mt-2">Дата рождения</Text>
-            <TouchableOpacity 
-              onPress={() => setShowDatePicker(true)}
-              style={{ backgroundColor: theme.bg, borderColor: theme.border }}
-              className="flex-row items-center p-4 rounded-2xl border mb-4"
-            >
-              <Ionicons name="calendar" size={18} color={theme.accent} style={{ marginRight: 10 }} />
-              <Text style={{ color: profile.baby_dob ? theme.text : theme.sub }}>
-                {profile.baby_dob || "Выбрать дату"}
-              </Text>
-            </TouchableOpacity>
-
-            <View className="flex-row justify-between">
-               <View className="w-[48%]">
-                 <SettingInput theme={theme} label="Вес (кг)" value={profile.baby_weight} onChange={(v: string) => setProfile({...profile, baby_weight: v})} keyboardType="numeric" />
-               </View>
-               <View className="w-[48%]">
-                 <SettingInput theme={theme} label="Рост (см)" value={profile.baby_height} onChange={(v: string) => setProfile({...profile, baby_height: v})} keyboardType="numeric" />
-               </View>
-            </View>
+        {/* БЛОК МАЛЫША */}
+        <Text style={[styles.sectionTitle, { color: BRAND_RED }]}>ДАННЫЕ МАЛЫША</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <View style={[styles.row, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+            <Text style={{ color: theme.text, fontSize: 16 }}>Имя</Text>
+            <Text style={{ color: theme.sub, fontSize: 16 }}>{profile?.baby_name || 'Не указано'}</Text>
+          </View>
+          <View style={[styles.row, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+            <Text style={{ color: theme.text, fontSize: 16 }}>Вес (кг)</Text>
+            <TextInput 
+              style={[styles.input, { color: theme.text }]} 
+              keyboardType="decimal-pad" 
+              value={weight} 
+              onChangeText={setWeight} 
+              placeholder="0.0" 
+              placeholderTextColor={theme.sub} 
+            />
+          </View>
+          <View style={styles.row}>
+            <Text style={{ color: theme.text, fontSize: 16 }}>Рост (см)</Text>
+            <TextInput 
+              style={[styles.input, { color: theme.text }]} 
+              keyboardType="decimal-pad" 
+              value={height} 
+              onChangeText={setHeight} 
+              placeholder="0.0" 
+              placeholderTextColor={theme.sub} 
+            />
           </View>
         </View>
 
-        {/* СЕКЦИЯ: ПРИЛОЖЕНИЕ */}
-        <View className="mb-6">
-          <Text style={{ color: theme.sub }} className="font-bold uppercase tracking-[2px] text-[10px] mb-3 ml-2">Приложение</Text>
-          <View style={{ backgroundColor: theme.card, borderColor: theme.border }} className="rounded-[32px] p-2 border shadow-sm">
-            <SettingRow theme={theme} label="Язык системы" value={profile.app_language.toUpperCase()} icon="language" onPress={cycleLanguage} />
-            <SettingRow theme={theme} label="Цветовая тема" value={themeName.toUpperCase()} icon="color-palette" onPress={cycleTheme} />
-            <SettingRow theme={theme} label="Email для отчетов" value={profile.parent_email.split('@')[0] + '...'} icon="mail" onPress={() => Alert.alert("Email", profile.parent_email)} />
-          </View>
-        </View>
-
-        {/* СЕКЦИЯ: ИНФО */}
-        <View className="mb-10">
-          <Text style={{ color: theme.sub }} className="font-bold uppercase tracking-[2px] text-[10px] mb-3 ml-2">Поддержка</Text>
-          <View style={{ backgroundColor: theme.card, borderColor: theme.border }} className="rounded-[32px] p-2 border shadow-sm">
-            <SettingRow theme={theme} label="Оценить Baby Zen" icon="star" onPress={() => Alert.alert("Скоро", "Мы добавим переход в App Store")} />
-            <SettingRow theme={theme} label="Политика конфиденциальности" icon="shield-checkmark" onPress={() => Linking.openURL('https://google.com')} />
-          </View>
-        </View>
-
-        <TouchableOpacity 
-          onPress={async () => { await supabase.auth.signOut(); router.replace('/login' as any); }}
-          className="items-center mb-20"
-        >
-          <Text style={{ color: theme.sub }} className="font-bold italic">Выйти из аккаунта</Text>
+        <TouchableOpacity onPress={saveProfile} style={[styles.saveBtn, { backgroundColor: BRAND_RED }]}>
+          {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.saveBtnText}>Сохранить данные</Text>}
         </TouchableOpacity>
 
-        {showDatePicker && (
-          <DateTimePicker
-            value={profile.baby_dob ? new Date(profile.baby_dob) : new Date()}
-            mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={onDateChange}
-            maximumDate={new Date()}
-          />
-        )}
+        {/* НАСТРОЙКИ */}
+        <Text style={[styles.sectionTitle, { color: BRAND_RED, marginTop: 30 }]}>НАСТРОЙКИ</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          
+          <View style={[styles.row, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="notifications-outline" size={20} color={theme.text} style={{ marginRight: 10 }} />
+              <Text style={{ color: theme.text, fontSize: 16 }}>Умные Push-уведомления</Text>
+            </View>
+            <Switch value={pushEnabled} onValueChange={handlePushToggle} trackColor={{ true: BRAND_RED }} />
+          </View>
+
+          {/* ИСПРАВЛЕНИЕ: Блок со светлой темой удален навсегда! Только Vampire Mode */}
+
+          <TouchableOpacity style={styles.row}>
+            <View style={styles.rowLeft}>
+              <Ionicons name="language-outline" size={20} color={theme.text} style={{ marginRight: 10 }} />
+              <Text style={{ color: theme.text, fontSize: 16 }}>Язык (Language)</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={theme.sub} />
+          </TouchableOpacity>
+        </View>
+
+        {/* ДОПОЛНИТЕЛЬНО */}
+        <Text style={[styles.sectionTitle, { color: BRAND_RED, marginTop: 30 }]}>ПРИЛОЖЕНИЕ</Text>
+        <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+          <TouchableOpacity style={[styles.row, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+            <Text style={{ color: theme.text, fontSize: 16 }}>Оценить Baby Zen</Text>
+            <Ionicons name="star-outline" size={20} color={theme.sub} />
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.row, { borderBottomColor: theme.border, borderBottomWidth: 1 }]}>
+            <Text style={{ color: theme.text, fontSize: 16 }}>Политика конфиденциальности</Text>
+            <Ionicons name="open-outline" size={20} color={theme.sub} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.row} onPress={() => supabase.auth.signOut()}>
+            <Text style={{ color: BRAND_RED, fontSize: 16, fontWeight: 'bold' }}>Выйти из аккаунта</Text>
+            <Ionicons name="log-out-outline" size={20} color={BRAND_RED} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ height: 50 }} />
       </ScrollView>
     </ScreenWrapper>
   );
 }
 
-// Вспомогательные компоненты (чистые и типизированные)
-function SettingInput({ label, value, onChange, icon, keyboardType = 'default', theme }: any) {
-  return (
-    <View className="mb-2">
-      <Text style={{ color: theme.sub }} className="text-[10px] font-bold uppercase mb-2 ml-1">{label}</Text>
-      <View style={{ backgroundColor: theme.bg, borderColor: theme.border }} className="flex-row items-center p-4 rounded-2xl border">
-        {icon && <Ionicons name={icon} size={18} color={theme.accent} style={{ marginRight: 10 }} />}
-        <TextInput value={value} onChangeText={onChange} keyboardType={keyboardType} style={{ color: theme.text, fontSize: 16, flex: 1 }} placeholderTextColor={theme.sub} />
-      </View>
-    </View>
-  );
-}
-
-function SettingRow({ label, value, icon, onPress, theme }: any) {
-  return (
-    <TouchableOpacity onPress={onPress} className="flex-row items-center justify-between p-4">
-      <View className="flex-row items-center">
-        <View style={{ backgroundColor: theme.bg }} className="w-10 h-10 rounded-xl items-center justify-center mr-4">
-          <Ionicons name={icon} size={20} color={theme.accent} />
-        </View>
-        <Text style={{ color: theme.text }} className="font-bold text-base">{label}</Text>
-      </View>
-      <View className="flex-row items-center">
-        <Text style={{ color: theme.sub }} className="font-bold mr-2">{value}</Text>
-        <Ionicons name="chevron-forward" size={16} color={theme.sub} />
-      </View>
-    </TouchableOpacity>
-  );
-}
+const styles = StyleSheet.create({
+  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, height: 60, borderBottomWidth: 1 },
+  backBtn: { padding: 5 },
+  title: { fontSize: 18, fontWeight: '900' },
+  scroll: { padding: 20 },
+  sectionTitle: { fontSize: 12, fontWeight: '900', letterSpacing: 1.5, marginBottom: 10, marginLeft: 10 },
+  card: { borderRadius: 20, borderWidth: 1, overflow: 'hidden', marginBottom: 20 },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 16, paddingHorizontal: 20 },
+  rowLeft: { flexDirection: 'row', alignItems: 'center' },
+  input: { fontSize: 16, textAlign: 'right', minWidth: 80 },
+  saveBtn: { paddingVertical: 16, borderRadius: 20, alignItems: 'center', justifyContent: 'center', shadowColor: BRAND_RED, shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
+  saveBtnText: { color: '#FFF', fontSize: 16, fontWeight: '900' },
+});

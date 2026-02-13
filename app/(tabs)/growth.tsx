@@ -1,125 +1,139 @@
 import React, { useState } from 'react';
-import { View, ScrollView, TouchableOpacity, Modal, Dimensions, Image, FlatList } from 'react-native';
+import { 
+  View, Text, StyleSheet, FlatList, TouchableOpacity, 
+  Image, Modal, Dimensions
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
-import { Text } from '@/components/Text';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useAppTheme } from '@/lib/ThemeContext';
+import { BlurView } from 'expo-blur';
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
-
-// Данные карточек (позже ты сможешь заменить картинки на свои из папки assets)
-const CARD_DATA: any = {
-  animals: [
-    { id: 1, title: 'ЛЕВ', icon: '🦁', color: '#FFB347' },
-    { id: 2, title: 'СЛОН', icon: '🐘', color: '#A2C2E1' },
-    { id: 3, title: 'ЖИРАФ', icon: '🦒', color: '#FDFD96' },
-  ],
-  fruits: [
-    { id: 1, title: 'ЯБЛОКО', icon: '🍎', color: '#FF6961' },
-    { id: 2, title: 'БАНАН', icon: '🍌', color: '#FDFD96' },
-    { id: 3, title: 'АРБУЗ', icon: '🍉', color: '#77DD77' },
-  ],
-  shapes: [
-    { id: 1, title: 'КРУГ', icon: '🔴', color: '#FF6961' },
-    { id: 2, title: 'КВАДРАТ', icon: '🟦', color: '#779ECB' },
-    { id: 3, title: 'ЗВЕЗДА', icon: '⭐', color: '#FDFD96' },
-  ],
-};
-
-const CATEGORIES = [
-  { id: 'animals', title: 'Животные', icon: '🐾', count: '3 карты', color: '#FF7E5F' },
-  { id: 'fruits', title: 'Фрукты', icon: '🍎', count: '3 карты', color: '#FEB47B' },
-  { id: 'shapes', title: 'Фигуры', icon: '🟦', count: '3 карты', color: '#6A11CB' },
-];
+const { width, height } = Dimensions.get('window');
 
 export default function GrowthScreen() {
-  const [viewerVisible, setViewerVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const { theme } = useAppTheme(); // Берем наш красный отсюда
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [activeCardIndex, setActiveCardIndex] = useState(0);
 
-  const openCategory = (id: string) => {
-    setSelectedCategory(id);
-    setViewerVisible(true);
-  };
+  // Теперь цвета категорий зависят только от твоего бренда
+  const CATEGORIES = [
+    { id: '1', title: 'Животные', icon: '🐾', cards: [
+      { id: 'a1', term: 'ЛЕВ', img: 'https://img.freepik.com/free-vector/isolated-lion-cartoon-character_1308-132215.jpg' },
+      { id: 'a2', term: 'СЛОН', img: 'https://img.freepik.com/free-vector/elephant-cartoon-character-isolated_1308-133543.jpg' },
+    ]},
+    { id: '2', title: 'Фрукты', icon: '🍎', cards: [
+      { id: 'f1', term: 'ЯБЛОКО', img: 'https://img.freepik.com/free-vector/red-apple-isolated_1308-133345.jpg' },
+    ]},
+    { id: '3', title: 'Транспорт', icon: '🚗', cards: [
+      { id: 't1', term: 'МАШИНА', img: 'https://img.freepik.com/free-vector/red-car-isolated_1308-133544.jpg' },
+    ]}
+  ];
+
+  const renderCategory = ({ item }: { item: any }) => (
+    <TouchableOpacity 
+      onPress={() => { setSelectedCategory(item); setActiveCardIndex(0); }}
+      style={[
+        styles.categoryCard, 
+        { 
+          backgroundColor: theme.card, 
+          borderColor: theme.border,
+          // Тонкая красная полоска сверху для стиля
+          borderTopColor: theme.accent, 
+          borderTopWidth: 3 
+        }
+      ]}
+    >
+      <Text style={styles.categoryEmoji}>{item.icon}</Text>
+      <Text style={[styles.categoryTitle, { color: theme.text }]}>{item.title}</Text>
+      <Text style={[styles.categoryCount, { color: theme.sub }]}>{item.cards.length} карточек</Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <ScreenWrapper style={{ backgroundColor: '#0B0E14' }}>
-      <ScrollView className="flex-1 px-5">
-        <View className="mt-8 mb-8">
-          <Text className="text-gray-500 text-xs font-bold uppercase tracking-[3px] mb-2">Интеллект</Text>
-          <Text className="text-white text-3xl font-black italic">ДОМАН.ZEN</Text>
+    <ScreenWrapper style={{ backgroundColor: theme.bg }}>
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <Text style={[styles.title, { color: theme.text }]}>Развитие</Text>
+          <Text style={[styles.subtitle, { color: theme.sub }]}>Карточки Домана</Text>
         </View>
 
-        <View className="flex-row flex-wrap justify-between">
-          {CATEGORIES.map((cat) => (
-            <TouchableOpacity 
-              key={cat.id} 
-              onPress={() => openCategory(cat.id)}
-              className="w-[47%] mb-4 active:opacity-70"
-            >
-              <View className="bg-[#161B22] rounded-[28px] p-5 border border-gray-900 overflow-hidden h-40 justify-center">
-                <LinearGradient colors={[`${cat.color}15`, 'transparent']} className="absolute inset-0" />
-                <Text className="text-3xl mb-3">{cat.icon}</Text>
-                <Text className="text-white font-bold text-lg">{cat.title}</Text>
-                <Text className="text-gray-500 text-[10px] font-bold uppercase mt-1">{cat.count}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <FlatList
+          data={CATEGORIES}
+          renderItem={renderCategory}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.columnWrapper}
+        />
 
-        <View className="bg-[#161B22] p-6 rounded-[28px] border border-gray-900 mt-4 mb-10">
-          <View className="flex-row items-center mb-3">
-            <Ionicons name="information-circle-outline" size={20} color="#D00000" />
-            <Text className="text-white font-bold ml-2 italic">МЕТОДИКА</Text>
-          </View>
-          <Text className="text-gray-400 text-sm leading-5">
-            Быстрое предъявление карточек стимулирует правое полушарие мозга. Листайте карточки быстро, называя предмет четко.
-          </Text>
-        </View>
-      </ScrollView>
+        <Modal visible={!!selectedCategory} animationType="fade" transparent={true}>
+          <View style={styles.modalOverlay}>
+            <TouchableOpacity style={styles.closeOverlay} onPress={() => setSelectedCategory(null)} />
+            
+            {selectedCategory && (
+              <View style={styles.cardViewer}>
+                <View style={styles.cardContent}>
+                  <Image source={{ uri: selectedCategory.cards[activeCardIndex].img }} style={styles.cardImage} resizeMode="contain" />
+                  <Text style={styles.cardTerm}>{selectedCategory.cards[activeCardIndex].term}</Text>
+                </View>
 
-      {/* МОДАЛКА ПРОСМОТРА КАРТОЧЕК */}
-      <Modal visible={viewerVisible} animationType="fade" transparent={false}>
-        <View className="flex-1 bg-white"> 
-          {/* Фон белый — это классика Домана для концентрации */}
-          
-          {/* Header просмотра */}
-          <View className="absolute top-12 left-6 right-6 z-10 flex-row justify-between items-center">
-            <TouchableOpacity 
-              onPress={() => setViewerVisible(false)}
-              className="w-12 h-12 bg-black/5 rounded-full items-center justify-center"
-            >
-              <Ionicons name="close" size={28} color="black" />
-            </TouchableOpacity>
-            <Text className="font-bold text-gray-400 uppercase tracking-widest">
-              {selectedCategory === 'animals' ? 'Животные' : selectedCategory === 'fruits' ? 'Фрукты' : 'Фигуры'}
-            </Text>
-            <TouchableOpacity className="w-12 h-12 bg-black/5 rounded-full items-center justify-center">
-              <Ionicons name="volume-medium-outline" size={24} color="black" />
-            </TouchableOpacity>
-          </View>
+                <View style={styles.cardNav}>
+                  <TouchableOpacity 
+                    onPress={() => setActiveCardIndex(prev => prev - 1)}
+                    disabled={activeCardIndex === 0}
+                    style={[styles.navBtn, { backgroundColor: theme.accent }, activeCardIndex === 0 && { opacity: 0.3 }]}
+                  >
+                    <Ionicons name="arrow-back" size={24} color="#FFF" />
+                  </TouchableOpacity>
 
-          {/* Слайдер карточек */}
-          <FlatList
-            data={selectedCategory ? CARD_DATA[selectedCategory] : []}
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <View style={{ width: SCREEN_WIDTH, height: SCREEN_HEIGHT }} className="items-center justify-center p-10">
-                <Text style={{ fontSize: 150 }} className="mb-10">{item.icon}</Text>
-                <Text className="text-[#D00000] text-6xl font-black text-center tracking-tighter">
-                  {item.title}
-                </Text>
+                  <TouchableOpacity 
+                    onPress={() => setActiveCardIndex(prev => prev + 1)}
+                    disabled={activeCardIndex === selectedCategory.cards.length - 1}
+                    style={[styles.navBtn, { backgroundColor: theme.accent }, activeCardIndex === selectedCategory.cards.length - 1 && { opacity: 0.3 }]}
+                  >
+                    <Ionicons name="arrow-forward" size={24} color="#FFF" />
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
-          />
-
-          <View className="absolute bottom-12 w-full items-center">
-             <Text className="text-gray-300 font-bold uppercase tracking-tighter">Листайте вправо →</Text>
           </View>
-        </View>
-      </Modal>
+        </Modal>
+      </View>
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, paddingHorizontal: 20 },
+  header: { marginTop: 20, marginBottom: 30 },
+  title: { fontSize: 32, fontWeight: '900' },
+  subtitle: { fontSize: 16, marginTop: 5, fontWeight: '600' },
+  columnWrapper: { justifyContent: 'space-between' },
+  categoryCard: {
+    width: (width - 55) / 2,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 15,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  categoryEmoji: { fontSize: 40, marginBottom: 10 },
+  categoryTitle: { fontSize: 18, fontWeight: '800', textAlign: 'center' },
+  categoryCount: { fontSize: 12, marginTop: 5, fontWeight: '700' },
+  
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.9)', justifyContent: 'center', alignItems: 'center' },
+  closeOverlay: { ...StyleSheet.absoluteFillObject },
+  cardViewer: { width: width, alignItems: 'center' },
+  cardContent: { 
+    width: width * 0.85, 
+    height: width * 1.1, 
+    backgroundColor: '#FFF', 
+    borderRadius: 30, 
+    padding: 20, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+  cardImage: { width: '80%', height: '60%' },
+  cardTerm: { fontSize: 42, fontWeight: '900', color: '#000', marginTop: 20 },
+  cardNav: { flexDirection: 'row', marginTop: 40, gap: 30 },
+  navBtn: { width: 60, height: 60, borderRadius: 30, alignItems: 'center', justifyContent: 'center' }
+});

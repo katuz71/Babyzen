@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { 
-  View, ScrollView, TouchableOpacity, ActivityIndicator, 
-  RefreshControl, Modal, SectionList, Dimensions, Alert, StyleSheet 
+import {
+  View, ScrollView, TouchableOpacity, ActivityIndicator,
+  RefreshControl, Modal, SectionList, Dimensions, Alert, StyleSheet
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
 import { Text } from '@/components/Text';
@@ -15,8 +15,9 @@ import { useTranslation } from 'react-i18next';
 import { useAppTheme } from '@/lib/ThemeContext';
 import Animated, { useSharedValue, useAnimatedStyle, withRepeat, withTiming, withSequence } from 'react-native-reanimated';
 
-const { height } = Dimensions.get('window');
+const { height, width } = Dimensions.get('window');
 const PAGE_SIZE = 30;
+const BRAND_RED = '#D00000'; // Твой идеальный красный
 
 // Цвета и конфиги действий
 const ACTION_LOGS: Record<string, { emoji: string; color: string; label: string }> = {
@@ -27,13 +28,13 @@ const ACTION_LOGS: Record<string, { emoji: string; color: string; label: string 
 };
 
 // Конфиг типов плача
-const CRY_TYPES: Record<string, { emoji: string; color: string; gradient: [string, string, ...string[]] }> = {
-  Hunger: { emoji: '🍼', color: '#FF9500', gradient: ['#FF9500', '#FF5E00'] },
-  Burp: { emoji: '☁️', color: '#34C759', gradient: ['#34C759', '#1D9444'] },
-  Sleep: { emoji: '😴', color: '#5856D6', gradient: ['#5856D6', '#322F91'] },
-  Discomfort: { emoji: '🧷', color: '#FF3B30', gradient: ['#FF3B30', '#B01F18'] },
-  Gas: { emoji: '💨', color: '#AF52DE', gradient: ['#AF52DE', '#732B9C'] },
-  Unknown: { emoji: '❓', color: '#8E8E93', gradient: ['#3A3A3C', '#1C1C1E'] },
+const CRY_TYPES: Record<string, { emoji: string; color: string; label: string; gradient: [string, string, ...string[]] }> = {
+  Hunger: { emoji: '🍼', color: '#FF9500', label: 'Голод', gradient: ['#FF9500', '#FF5E00'] },
+  Burp: { emoji: '☁️', color: '#34C759', label: 'Отрыжка', gradient: ['#34C759', '#1D9444'] },
+  Sleep: { emoji: '😴', color: '#5856D6', label: 'Сон', gradient: ['#5856D6', '#322F91'] },
+  Discomfort: { emoji: '🧷', color: '#FF3B30', label: 'Дискомфорт', gradient: ['#FF3B30', '#B01F18'] },
+  Gas: { emoji: '💨', color: '#AF52DE', label: 'Газики', gradient: ['#AF52DE', '#732B9C'] },
+  Unknown: { emoji: '❓', color: '#8E8E93', label: 'Неизвестно', gradient: ['#3A3A3C', '#1C1C1E'] },
 };
 
 interface UnifiedLogItem {
@@ -70,13 +71,22 @@ function formatDuration(ms: number) {
   return `${pad2(minutes)}:${pad2(seconds)}`;
 }
 
+// Хелпер для виджета
+function getTimeAgo(dateStr: string) {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'только что';
+  if (mins < 60) return `${mins} мин. назад`;
+  return new Date(dateStr).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
 // =====================================================================
 // КОМПОНЕНТ ДНЕВНИКА ПЛАЧА И ДЕЙСТВИЙ (Внутри модалки)
 // =====================================================================
 function HistoryModalContent({ onClose }: { onClose: () => void }) {
   const { t, i18n } = useTranslation();
   const { theme } = useAppTheme();
-  const router = useRouter(); 
+  const router = useRouter();
   const locale = useMemo(() => safeLocale(i18n.language), [i18n.language]);
 
   const [history, setHistory] = useState<UnifiedLogItem[]>([]);
@@ -84,7 +94,7 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
-  
+ 
   const [selectedCry, setSelectedCry] = useState<UnifiedLogItem | null>(null);
 
   const soothePlayerRef = useRef<Audio.Sound | null>(null);
@@ -137,7 +147,6 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
       }
       if (logsRes.data) {
         logsRes.data.forEach(l => {
-          // СТРОГАЯ ФИЛЬТРАЦИЯ: Показываем только те логи, которые мы знаем
           if (ACTION_LOGS[l.type]) {
             combined.push({ ...l, id: `log_${l.id}`, table: 'logs', original_id: l.id });
           }
@@ -160,7 +169,7 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
       if (page.length > 0) setNextCursor(page[page.length - 1].created_at);
       if (page.length < PAGE_SIZE) setHasMore(false);
 
-    } catch (e: any) { Alert.alert(t('common.error', { defaultValue: 'Ошибка' }), e.message); } 
+    } catch (e: any) { Alert.alert(t('common.error', { defaultValue: 'Ошибка' }), e.message); }
     finally { if (reset) setLoading(false); else setLoadingMore(false); }
   };
 
@@ -182,7 +191,7 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
     await supabase.from(item.table).delete().eq('id', item.original_id);
   };
 
-  const deleteDay = async (sectionKey: string) => { 
+  const deleteDay = async (sectionKey: string) => {
     setHistory(prev => prev.filter(it => dayKey(new Date(it.created_at)) !== sectionKey));
     const [y, m, d] = sectionKey.split('-');
     const from = new Date(parseInt(y), parseInt(m)-1, parseInt(d), 0, 0, 0).toISOString();
@@ -233,13 +242,13 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
       query = `В ${time} был плач типа ${typeKey}. Что это значит и как помочь малышу?`;
     } else {
       const config = ACTION_LOGS[item.type];
-      if (!config) return; // Защита
+      if (!config) return;
       query = `В ${time} я отметил: ${config.label}. Какие будут рекомендации?`;
     }
-    
+   
     stopSmartSoothe();
     onClose();
-    
+   
     router.push({
       pathname: '/(tabs)/chat',
       params: { initialQuery: query }
@@ -251,8 +260,8 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
       setSelectedCry(item);
     } else {
       const config = ACTION_LOGS[item.type];
-      if (!config) return; // Защита
-      
+      if (!config) return;
+     
       const time = new Date(item.created_at).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
       Alert.alert(
         config.label,
@@ -304,7 +313,7 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
       emoji = config.emoji; color = config.color; title = `AI: ${typeKey}`; subtitle = item.reasoning;
     } else {
       const config = ACTION_LOGS[item.type];
-      if (!config) return null; // Скрываем неизвестные логи из интерфейса
+      if (!config) return null;
       emoji = config.emoji; color = config.color; title = config.label; subtitle = 'Ручная отметка';
     }
 
@@ -358,9 +367,9 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
                 <View style={styles.line} />
                 <Text style={styles.descriptionText}>{selectedCry.reasoning}</Text>
               </ScrollView>
-              
-              <TouchableOpacity 
-                style={styles.aiButton} 
+             
+              <TouchableOpacity
+                style={[styles.aiButton, { backgroundColor: BRAND_RED }]}
                 onPress={() => handleAskAI(selectedCry)}
                 activeOpacity={0.9}
               >
@@ -395,7 +404,7 @@ function HistoryModalContent({ onClose }: { onClose: () => void }) {
 export default function DashboardScreen() {
   const router = useRouter();
   const { theme } = useAppTheme();
-  
+ 
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<any>(null);
   const [lastCry, setLastCry] = useState<any>(null);
@@ -437,7 +446,7 @@ export default function DashboardScreen() {
   useEffect(() => { fetchData(); }, []);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: any;
     if (activeSleepRecord) {
       interval = setInterval(() => { setSleepTimerDisplay(formatDuration(Date.now() - new Date(activeSleepRecord.created_at).getTime())); }, 1000);
     }
@@ -448,7 +457,7 @@ export default function DashboardScreen() {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     await supabase.from('logs').insert({ user_id: user.id, type });
-    fetchData(); 
+    fetchData();
   };
 
   const handleSleepToggle = async () => {
@@ -456,7 +465,7 @@ export default function DashboardScreen() {
     else await quickLog('sleep_start');
   };
 
-  if (loading) return <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={theme.accent} size="large" /></View>;
+  if (loading) return <View style={{ flex: 1, backgroundColor: theme.bg, alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={BRAND_RED} size="large" /></View>;
 
   const getAiInsight = () => {
     if (activeSleepRecord) return `Малыш сейчас спит (${sleepTimerDisplay}). Постарайтесь не шуметь. Я запишу это время для аналитики режима.`;
@@ -467,10 +476,14 @@ export default function DashboardScreen() {
     return 'Начните отмечать события (кормление, сон), чтобы я мог анализировать режим малыша.';
   };
 
+  // Конфиг последнего плача для виджета
+  const lastCryKey = normalizeTypeKey(lastCry?.type);
+  const lastCryConfig = CRY_TYPES[lastCryKey] || CRY_TYPES.Unknown;
+
   return (
     <ScreenWrapper style={{ backgroundColor: theme.bg }}>
-      <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={theme.accent} />}>
-        
+      <ScrollView className="flex-1 px-5" showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); fetchData(); }} tintColor={BRAND_RED} />}>
+       
         {/* HEADER */}
         <View className="mt-6 mb-8 flex-row justify-between items-center">
           <View>
@@ -490,7 +503,7 @@ export default function DashboardScreen() {
         {/* AI INSIGHT CARD */}
         <View className="rounded-3xl p-6 mb-8 border" style={{ backgroundColor: theme.card, borderColor: theme.border }}>
           <View className="flex-row items-center mb-3">
-            <Ionicons name="sparkles" size={20} color={activeSleepRecord ? ACTION_LOGS.sleep_start.color : theme.accent} />
+            <Ionicons name="sparkles" size={20} color={activeSleepRecord ? ACTION_LOGS.sleep_start.color : BRAND_RED} />
             <Text style={{ color: theme.sub }} className="ml-2 font-bold uppercase tracking-widest text-xs">{activeSleepRecord ? 'Сонный Инсайт' : 'AI Инсайт'}</Text>
           </View>
           <Text style={{ color: theme.text }} className="text-lg leading-6">{getAiInsight()}</Text>
@@ -499,7 +512,7 @@ export default function DashboardScreen() {
         {/* QUICK ACTIONS */}
         <View className="flex-row justify-between mb-10">
           <ActionButton icon="restaurant" label="Покормил" color={ACTION_LOGS.feeding.color} theme={theme} onPress={() => quickLog('feeding')} />
-          
+         
           <TouchableOpacity onPress={handleSleepToggle} className="items-center">
             {activeSleepRecord ? (
               <View className="items-center">
@@ -523,13 +536,34 @@ export default function DashboardScreen() {
           <ActionButton icon="water" label="Сменил" color={ACTION_LOGS.diaper.color} theme={theme} onPress={() => quickLog('diaper')} />
         </View>
 
-        {/* MAIN RECORD BUTTON */}
-        <View className="items-center mb-10">
-          <TouchableOpacity onPress={() => router.push('/(tabs)/record')} activeOpacity={0.8} className="w-48 h-48 rounded-full items-center justify-center border-[2px]" style={{ backgroundColor: theme.card, borderColor: theme.border, shadowColor: theme.accent, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 }}>
-            <View style={{ backgroundColor: theme.accent }} className="w-40 h-40 rounded-full items-center justify-center shadow-lg"><Ionicons name="mic" size={60} color="#FFF" /></View>
+        {/* MAIN RECORD BUTTON (ШАР) */}
+        <View className="items-center mb-6">
+          <TouchableOpacity onPress={() => router.push('/(tabs)/record')} activeOpacity={0.8} className="w-48 h-48 rounded-full items-center justify-center border-[2px]" style={{ backgroundColor: theme.card, borderColor: theme.border, shadowColor: BRAND_RED, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.5, shadowRadius: 20, elevation: 10 }}>
+            <View style={{ backgroundColor: BRAND_RED }} className="w-40 h-40 rounded-full items-center justify-center shadow-lg"><Ionicons name="mic" size={60} color="#FFF" /></View>
           </TouchableOpacity>
-          <Text style={{ color: theme.text }} className="mt-4 font-bold text-lg">Понять плач</Text>
+          <Text style={{ color: theme.text }} className="mt-4 font-black text-xl uppercase tracking-widest">Понять плач</Text>
         </View>
+
+        {/* 🔥 ВИДЖЕТ ПЛАЧА СТРОГО ПОД ШАРОМ */}
+        {lastCry && (
+          <TouchableOpacity 
+            onPress={() => router.push('/(tabs)/chat')}
+            style={[styles.lastCryWidget, { backgroundColor: '#0A0A0A', borderColor: BRAND_RED + '40' }]}
+            activeOpacity={0.9}
+          >
+            <View style={styles.cryIconBox}>
+              <Text style={{ fontSize: 26 }}>{lastCryConfig.emoji}</Text>
+            </View>
+            <View style={{ flex: 1, marginLeft: 15 }}>
+              <Text style={{ color: BRAND_RED, fontSize: 10, fontWeight: '900', textTransform: 'uppercase', letterSpacing: 1 }}>Последний анализ</Text>
+              <Text style={{ color: '#FFF', fontSize: 18, fontWeight: '900' }}>{lastCryConfig.label}</Text>
+              <Text style={{ color: '#666', fontSize: 12 }}>{getTimeAgo(lastCry.created_at)}</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#444" />
+          </TouchableOpacity>
+        )}
+
+        <View style={{ height: 40 }} />
       </ScrollView>
 
       {/* МОДАЛКА ЛЕНТЫ СОБЫТИЙ */}
@@ -540,7 +574,6 @@ export default function DashboardScreen() {
   );
 }
 
-// Вспомогательный компонент кнопки
 function ActionButton({ icon, label, color, theme, onPress }: any) {
   return (
     <TouchableOpacity onPress={onPress} className="items-center">
@@ -552,9 +585,6 @@ function ActionButton({ icon, label, color, theme, onPress }: any) {
   );
 }
 
-// =====================================================================
-// ИСПРАВЛЕННЫЕ СТИЛИ
-// =====================================================================
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingTop: 60, paddingHorizontal: 25, paddingBottom: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -581,8 +611,11 @@ const styles = StyleSheet.create({
   typeTitle: { fontSize: 32, fontWeight: '900', color: '#FFF', textAlign: 'center' },
   line: { width: '100%', height: 1, backgroundColor: 'rgba(255,255,255,0.2)', marginVertical: 20 },
   descriptionText: { fontSize: 18, color: '#FFF', textAlign: 'center', lineHeight: 26 },
-  
-  // Кнопки взаимодействия
+ 
+  // ВИДЖЕТ ПЛАЧА
+  lastCryWidget: { flexDirection: 'row', alignItems: 'center', padding: 18, borderRadius: 28, borderWidth: 1, marginTop: 20 },
+  cryIconBox: { width: 54, height: 54, borderRadius: 16, backgroundColor: '#1A0505', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: '#D0000020' },
+
   aiButton: { width: '100%', paddingVertical: 16, borderRadius: 22, backgroundColor: '#007AFF', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, shadowColor: '#007AFF', shadowOpacity: 0.3, shadowRadius: 10, elevation: 5 },
   aiButtonText: { color: '#FFF', fontSize: 16, fontWeight: '900', marginLeft: 8 },
   sootheButton: { width: '100%', paddingVertical: 16, borderRadius: 22, backgroundColor: 'rgba(255,255,255,0.15)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', marginTop: 10 },

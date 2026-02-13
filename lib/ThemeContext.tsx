@@ -14,13 +14,13 @@ export interface ThemeColors {
 }
 
 const THEMES: Record<ThemeName, ThemeColors> = {
-  dark: { // Наш фирменный Vampire Mode
-    bg: '#000000',
-    card: '#121212',
-    accent: '#FF453A', // BabyZen Red
-    text: '#FFFFFF',
-    sub: '#8E8E93',
-    border: '#2C2C2E',
+  dark: { 
+    bg: '#000000',      // Чистый черный как на пейволле
+    card: '#0A0A0A',    // Глубокий серый для карточек (как неактивный план)
+    accent: '#D00000',  // ТВОЙ ИДЕАЛЬНЫЙ КРАСНЫЙ
+    text: '#FFFFFF',    // Белый
+    sub: '#666666',     // Цвет иконок и неактивного текста
+    border: '#222222',  // Границы как в PlanCard
   },
   pink: { // Нежная розовая тема
     bg: '#FFF0F5', 

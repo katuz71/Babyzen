@@ -1,34 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, TextInput, FlatList, KeyboardAvoidingView, Platform, ActivityIndicator, TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  ScrollView, 
+  KeyboardAvoidingView, 
+  Platform, 
+  ActivityIndicator, 
+  StyleSheet, 
+  Keyboard,
+  Alert 
+} from 'react-native';
+import { Ionicons, Feather } from '@expo/vector-icons'; 
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ScreenWrapper } from '@/components/ScreenWrapper';
-import { Text } from '@/components/Text';
 import { supabase } from '@/lib/supabase';
+import { useAppTheme } from '@/lib/ThemeContext';
 
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-}
+// 🔴 ТОТ САМЫЙ КРАСНЫЙ ИЗ ПЕЙВОЛЛА
+const BRAND_RED = '#D00000'; 
 
 export default function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [fetching, setFetching] = useState(true);
-  const flatListRef = useRef<FlatList>(null);
+  const { theme } = useAppTheme();
+  const router = useRouter();
+  const { initialQuery } = useLocalSearchParams<{ initialQuery?: string }>(); 
+  
+  const [messages, setMessages] = useState<any[]>([]);
+  const [inputText, setInputText] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [sending, setSending] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [lastProcessedQuery, setLastProcessedQuery] = useState<string | null>(null);
+  
+  const scrollViewRef = useRef<ScrollView>(null);
 
-  // Загружаем историю при открытии вкладки
   useEffect(() => {
-    loadChatHistory();
+    fetchHistory();
   }, []);
 
-  const loadChatHistory = async () => {
+  const fetchHistory = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
-
-      // 1. Находим последнюю сессию
+      setUserId(user.id);
+      
       const { data: session } = await supabase
         .from('chat_sessions')
         .select('id')
@@ -38,122 +54,203 @@ export default function ChatScreen() {
         .maybeSingle();
 
       if (session) {
-        // 2. Загружаем все сообщения этой сессии
-        const { data: msgs, error } = await supabase
+        const { data: msgs } = await supabase
           .from('chat_messages')
           .select('*')
           .eq('session_id', session.id)
           .order('created_at', { ascending: true });
-
         if (msgs) setMessages(msgs);
+      } else {
+        setMessages([{
+          id: 'welcome',
+          role: 'assistant',
+          content: 'Я готов помочь. Какой вопрос по малышу?',
+          created_at: new Date().toISOString()
+        }]);
       }
     } catch (e) {
-      console.log('Error loading history:', e);
-    } finally {
-      setFetching(false);
-    }
-  };
-
-  const sendMessage = async () => {
-    if (!input.trim() || loading) return;
-
-    const userMsgText = input.trim();
-    setInput('');
-    
-    // Оптимистично добавляем сообщение юзера на экран
-    const tempId = Date.now().toString();
-    setMessages(prev => [...prev, { id: tempId, role: 'user', content: userMsgText }]);
-    setLoading(true);
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data, error } = await supabase.functions.invoke('ai-mentor', {
-        body: { message: userMsgText, user_id: user?.id }
-      });
-
-      if (error) throw error;
-      
-      // Добавляем ответ AI на экран
-      setMessages(prev => [...prev, { 
-        id: (Date.now() + 1).toString(), 
-        role: 'assistant', 
-        content: data.response 
-      }]);
-    } catch (e) {
       console.error(e);
-      setMessages(prev => [...prev, { id: 'err', role: 'assistant', content: '⚠️ Ошибка связи. Попробуйте еще раз.' }]);
     } finally {
       setLoading(false);
     }
   };
 
+  useEffect(() => {
+    if (initialQuery && !loading && userId && initialQuery !== lastProcessedQuery && !sending) {
+      setLastProcessedQuery(initialQuery);
+      sendMessage(initialQuery);
+    }
+  }, [initialQuery, loading, userId, lastProcessedQuery]);
+
+  const sendMessage = async (textToProcess?: string) => {
+    const text = textToProcess || inputText.trim();
+    if (!text || !userId || sending) return;
+
+    if (!textToProcess) {
+      setInputText('');
+      Keyboard.dismiss();
+    }
+
+    const tempId = Date.now().toString();
+    setMessages(prev => [
+      ...prev, 
+      { id: tempId, role: 'user', content: text, created_at: new Date().toISOString() },
+      { id: tempId + '_loading', role: 'assistant', content: '', is_loading: true }
+    ]);
+    setSending(true);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('ai-mentor', {
+        body: { message: text, user_id: userId }
+      });
+      if (error) throw error;
+
+      setMessages(prev => {
+        const filtered = prev.filter(m => !m.is_loading);
+        return [...filtered, {
+          id: (Date.now() + 1).toString(),
+          role: 'assistant',
+          content: data.response || 'Ошибка ответа ИИ.',
+          created_at: new Date().toISOString()
+        }];
+      });
+    } catch (e: any) {
+      setMessages(prev => prev.filter(m => !m.is_loading));
+      console.error("AI MENTOR ERROR:", e);
+      Alert.alert('Дебаг Ошибка', e.message || JSON.stringify(e));
+    } finally {
+      setSending(false);
+    }
+  };
+
   return (
-    <ScreenWrapper>
-      <View className="flex-1 bg-black">
-        {/* Header */}
-        <View className="p-4 border-b border-gray-900">
-          <Text className="text-xl font-bold text-white">AI Mentor</Text>
+    <ScreenWrapper style={{ backgroundColor: theme.bg }}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      >
+        {/* HEADER */}
+        <View style={[styles.header, { backgroundColor: theme.bg, borderBottomColor: theme.border }]}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+            <Ionicons name="chevron-back" size={28} color={theme.text} />
+          </TouchableOpacity>
+          <View style={styles.headerInfo}>
+            {/* ИСПРАВЛЕНО: Используем Ionicons для sparkles */}
+            <View style={[styles.avatar, { borderColor: `${BRAND_RED}40` }]}>
+              <Ionicons name="sparkles" size={18} color={BRAND_RED} />
+            </View>
+            <Text style={[styles.headerTitle, { color: theme.text }]}>AI Педиатр</Text>
+          </View>
         </View>
 
-        {fetching ? (
-          <View className="flex-1 items-center justify-center">
-            <ActivityIndicator color="#D00000" />
-          </View>
-        ) : (
-          <FlatList
-            ref={flatListRef}
-            data={messages}
-            keyExtractor={item => item.id}
-            contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: true })}
-            renderItem={({ item }) => (
-              <View className={`my-2 max-w-[85%] rounded-2xl p-4 ${
-                item.role === 'user' 
-                  ? 'bg-[#222] self-end rounded-tr-none' 
-                  : 'bg-[#111] border border-gray-800 self-start rounded-tl-none'
-              }`}>
-                <Text className="text-gray-200">{item.content}</Text>
-              </View>
-            )}
-            ListEmptyComponent={
-              <View className="items-center justify-center mt-20 opacity-30">
-                <Ionicons name="chatbubbles-outline" size={64} color="gray" />
-                <Text className="text-gray-500 mt-4 text-center">Задайте вопрос о вашем малыше...</Text>
-              </View>
-            }
-          />
-        )}
-
-        {/* Input */}
-        <KeyboardAvoidingView 
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
-          className="absolute bottom-0 w-full bg-black border-t border-gray-900 p-4"
+        <ScrollView 
+          ref={scrollViewRef}
+          style={styles.chatArea}
+          onContentSizeChange={() => scrollViewRef.current?.scrollToEnd()}
+          showsVerticalScrollIndicator={false}
         >
-          <View className="flex-row items-center gap-3">
-            <TextInput
-              value={input}
-              onChangeText={setInput}
-              placeholder="Спроси BabyZen..."
-              placeholderTextColor="#555"
-              className="flex-1 bg-[#1C1C1E] text-white p-4 rounded-full text-base"
-              multiline
-            />
-            <TouchableOpacity 
-              onPress={sendMessage} 
-              disabled={loading} 
-              className={`w-12 h-12 rounded-full items-center justify-center ${loading ? 'bg-gray-800' : 'bg-[#D00000]'}`}
-            >
-              {loading ? (
-                <ActivityIndicator color="#fff" size="small" />
-              ) : (
-                <Ionicons name="arrow-up" size={24} color="white" />
-              )}
-            </TouchableOpacity>
-          </View>
-        </KeyboardAvoidingView>
-      </View>
+          {messages.map((msg, index) => {
+            const isUser = msg.role === 'user';
+            return (
+              <View key={msg.id || index} style={[
+                styles.bubble, 
+                isUser ? styles.userBubble : styles.aiBubble,
+                { 
+                  backgroundColor: isUser ? BRAND_RED : theme.card,
+                  borderColor: isUser ? BRAND_RED : theme.border 
+                }
+              ]}>
+                {msg.is_loading ? (
+                  <ActivityIndicator color={BRAND_RED} size="small" />
+                ) : (
+                  <Text style={[styles.text, { color: isUser ? '#FFF' : '#BBB' }]}>
+                    {msg.content}
+                  </Text>
+                )}
+              </View>
+            );
+          })}
+        </ScrollView>
+
+        {/* INPUT */}
+        <View style={[styles.inputRow, { backgroundColor: theme.bg, borderTopColor: theme.border }]}>
+          <TextInput
+            style={[styles.input, { color: theme.text, backgroundColor: theme.card, borderColor: theme.border }]}
+            placeholder="Ваш вопрос..."
+            placeholderTextColor={theme.sub}
+            value={inputText}
+            onChangeText={setInputText}
+            multiline
+          />
+          <TouchableOpacity 
+            onPress={() => sendMessage()}
+            disabled={!inputText.trim() || sending}
+            style={[styles.sendBtn, { backgroundColor: inputText.trim() ? BRAND_RED : theme.card }]}
+          >
+            {sending ? (
+              <ActivityIndicator color="#FFF" />
+            ) : (
+              <Ionicons name="arrow-up" size={24} color={inputText.trim() ? '#FFF' : theme.sub} />
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </ScreenWrapper>
   );
 }
+
+const styles = StyleSheet.create({
+  header: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    paddingHorizontal: 20, 
+    height: 60, 
+    borderBottomWidth: 1, 
+    marginTop: Platform.OS === 'ios' ? 0 : 30 
+  },
+  backBtn: { padding: 5 },
+  headerInfo: { flexDirection: 'row', alignItems: 'center', marginLeft: 15 },
+  avatar: { 
+    width: 36, 
+    height: 36, 
+    borderRadius: 18, 
+    alignItems: 'center', 
+    justifyContent: 'center', 
+    marginRight: 12, 
+    backgroundColor: '#1A0505', 
+    borderWidth: 1 
+  },
+  headerTitle: { fontSize: 18, fontWeight: '900' },
+  chatArea: { flex: 1, paddingHorizontal: 16, paddingTop: 10 },
+  bubble: { maxWidth: '85%', padding: 14, borderRadius: 20, marginBottom: 12, borderWidth: 1 },
+  userBubble: { marginLeft: 'auto', borderBottomRightRadius: 4 },
+  aiBubble: { marginRight: 'auto', borderBottomLeftRadius: 4 },
+  text: { fontSize: 16, lineHeight: 22, fontWeight: '500' },
+  inputRow: { 
+    flexDirection: 'row', 
+    padding: 10, 
+    paddingBottom: Platform.OS === 'ios' ? 30 : 10, 
+    borderTopWidth: 1, 
+    alignItems: 'center' 
+  },
+  input: { 
+    flex: 1, 
+    minHeight: 44, 
+    maxHeight: 100, 
+    borderRadius: 22, 
+    paddingHorizontal: 16, 
+    paddingTop: 10, 
+    paddingBottom: 10, 
+    fontSize: 16, 
+    borderWidth: 1, 
+    marginRight: 10 
+  },
+  sendBtn: { 
+    width: 44, 
+    height: 44, 
+    borderRadius: 22, 
+    alignItems: 'center', 
+    justifyContent: 'center' 
+  },
+});
